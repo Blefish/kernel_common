@@ -262,7 +262,7 @@ config SERIAL_SAMSUNG_UARTS
 	help
 	  Select the number of available UART ports for the Samsung S3C
 	  serial driver
-	
+
 config SERIAL_SAMSUNG_DEBUG
 	bool "Samsung SoC serial debug"
 	depends on SERIAL_SAMSUNG && DEBUG_LL
@@ -680,8 +680,8 @@ config PDC_CONSOLE
 	depends on PARISC && !SERIAL_MUX && VT
 	default n
 	help
-	  Saying Y here will enable the software based PDC console to be 
-	  used as the system console.  This is useful for machines in 
+	  Saying Y here will enable the software based PDC console to be
+	  used as the system console.  This is useful for machines in
 	  which the hardware based console has not been written yet.  The
 	  following steps must be completed to use the PDC console:
 
@@ -872,7 +872,7 @@ config SERIAL_CPM
 	depends on CPM2 || CPM1
 	select SERIAL_CORE
 	help
-	  This driver supports the SCC and SMC serial ports on Motorola 
+	  This driver supports the SCC and SMC serial ports on Motorola
 	  embedded PowerPC that contain a CPM1 (8xx) or CPM2 (8xxx)
 
 config SERIAL_CPM_CONSOLE
@@ -1053,6 +1053,13 @@ config SERIAL_MSM_CONSOLE
 	depends on SERIAL_MSM=y
 	select SERIAL_CORE_CONSOLE
 	select SERIAL_EARLYCON
+
+config SERIAL_MSM_SMD
+	bool "Enable tty device interface for some SMD ports"
+	depends on MSM_SMD
+	help
+	  Enables userspace clients to read and write to some streaming SMD
+	  ports via tty device interface for MSM chipset.
 
 config SERIAL_VT8500
 	bool "VIA VT8500 on-chip serial port support"

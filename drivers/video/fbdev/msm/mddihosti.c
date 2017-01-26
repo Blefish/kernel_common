@@ -1575,3 +1575,11 @@ void mddi_queue_forward_packets(uint16_t first_llist_idx,
 
 	spin_unlock_irqrestore(&mddi_host_spin_lock, flags);
 }
+
+void mddi_auto_hibernation_enable(bool enable)
+{
+	if (enable)
+		mddi_host_reg_out(CMD, MDDI_CMD_HIBERNATE | 1);
+	else
+		mddi_host_reg_out(CMD, MDDI_CMD_HIBERNATE);
+}

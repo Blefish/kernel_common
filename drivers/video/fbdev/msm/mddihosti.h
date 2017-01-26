@@ -398,6 +398,7 @@ extern void mddi_queue_forward_packets(uint16_t first_llist_idx,
 				       uint16_t last_llist_idx,
 				       bool wait,
 				       mddi_llist_done_cb_type llist_done_cb);
+extern void mddi_auto_hibernation_enable(bool enable);
 
 extern mddi_linked_list_type *llist_extern;
 extern mddi_linked_list_type *llist_dma_extern;

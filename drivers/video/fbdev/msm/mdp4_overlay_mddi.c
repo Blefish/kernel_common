@@ -10,7 +10,7 @@
  * GNU General Public License for more details.
  *
  */
-
+//#define DEBUG
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
@@ -19,6 +19,7 @@
 #include <linux/interrupt.h>
 #include <linux/delay.h>
 #include <linux/io.h>
+#include <linux/pm_runtime.h>
 #include <linux/semaphore.h>
 #include <linux/spinlock.h>
 #include <linux/fb.h>
@@ -71,6 +72,7 @@ static struct vsycn_ctrl {
 	u32 last_vsync_ms;
 	struct work_struct clk_work;
 	wait_queue_head_t wait_queue;
+	struct device *panel_dev;
 } vsync_ctrl_db[MAX_CONTROLLER];
 
 /* MDP 4.0 versions earlier than 2.1 suffer underrun from DMA_P pipe on
@@ -491,6 +493,7 @@ void mdp4_mddi_vsync_ctrl(struct fb_info *info, int enable)
 		vctrl->expire_tick = 0;
 		spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 		if (vctrl->clk_enabled == 0) {
+			pm_runtime_get(vctrl->panel_dev);
 			pr_debug("%s: SET_CLK_ON\n", __func__);
 			mdp_clk_ctrl(1);
 			vctrl->clk_enabled = 1;
@@ -761,6 +764,7 @@ static void clk_ctrl_work(struct work_struct *work)
 		spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 		mdp_clk_ctrl(0);
 		pr_debug("%s: SET_CLK_OFF, pid=%d\n", __func__, current->pid);
+		pm_runtime_put(vctrl->panel_dev);
 	} else {
 		spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 	}
@@ -940,6 +944,8 @@ static void mdp4_overlay_update_mddi(struct msm_fb_data_type *mfd)
 		return;
 
 	vctrl = &vsync_ctrl_db[cndx];
+
+	vctrl->panel_dev = mfd->panel_info.dev;
 
 	if (vctrl->base_pipe == NULL) {
 		ptype = mdp4_overlay_format2type(mfd->fb_imgType);
@@ -1129,6 +1135,7 @@ int mdp4_mddi_off(struct msm_fb_data_type *mfd)
 		spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 		mdp_clk_ctrl(0);
 		pr_err("%s: Error, SET_CLK_OFF by force\n", __func__);
+		pm_runtime_put(vctrl->panel_dev);
 	}
 
 	if (vctrl->vsync_enabled) {
@@ -1205,6 +1212,7 @@ static int mdp4_mddi_clk_check(struct vsycn_ctrl *vctrl)
 	spin_unlock_irqrestore(&vctrl->spin_lock, flags);
 
 	if (clk_set_on) {
+		pm_runtime_get(vctrl->panel_dev);
 		pr_debug("%s: SET_CLK_ON\n", __func__);
 		mdp_clk_ctrl(1);
 		vsync_irq_enable(INTR_PRIMARY_RDPTR, MDP_PRIM_RDPTR_TERM);

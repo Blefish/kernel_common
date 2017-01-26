@@ -38,6 +38,7 @@
 #include "mdp4.h"
 
 struct mdp_driver_data {
+	struct device *dev;
 	struct regulator *footswitch;
 	bool footswitch_on;
 
@@ -505,6 +506,7 @@ static int mdp_probe(struct platform_device *pdev)
 	/* TODO: Should go away */
 	mdp_data = data;
 
+	data->dev = dev;
 	mutex_init(&data->suspend_mutex);
 	spin_lock_init(&data->lock);
 	init_completion(&data->dma.comp);
@@ -599,7 +601,8 @@ static int mdp_runtime_suspend(struct device *dev)
 	struct mdp_driver_data *data = dev_get_drvdata(dev);
 	struct msm_fb_data_type *mfd = data->mfd;
 
-	pr_debug("%s:+\n", __func__);
+	dev_dbg(dev, "suspending\n");
+
 	mdp_clk_ctrl(1);
 
 	if (mfd->panel.type == MDDI_PANEL)
@@ -611,7 +614,6 @@ static int mdp_runtime_suspend(struct device *dev)
 	mdp_clk_ctrl(0);
 
 	mdp_footswitch_ctrl(data, false);
-	pr_debug("%s:-\n", __func__);
 
 	return 0;
 }
@@ -624,8 +626,10 @@ static int mdp_runtime_resume(struct device *dev)
 	int ret = 0;
 	int i;
 
-	pr_debug("%s:+\n", __func__);
+	dev_dbg(dev, "resuming\n");
+
 	mdp_footswitch_ctrl(data, true);
+
 	mdp_clk_ctrl(1);
 
 	if (mdp_rev >= MDP_REV_40) {
@@ -650,7 +654,6 @@ static int mdp_runtime_resume(struct device *dev)
 	}
 
 	mdp_clk_ctrl(0);
-	pr_debug("%s:-\n", __func__);
 
 	return ret;
 }

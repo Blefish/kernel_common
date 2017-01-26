@@ -27,7 +27,7 @@
 struct msm_fb_data_type {
 	int key;
 	int index;
-	int ref_cnt;
+
 	int fb_page;
 
 	struct panel_id panel;
@@ -47,8 +47,9 @@ struct msm_fb_data_type {
 	__u32 total_lcd_lines;
 	__u32 total_porch_lines;
 
+	int ref_cnt;
 	bool panel_power_on;
-	struct semaphore sem;
+	struct mutex op_mutex;
 
 	struct mdp_dma_data *dma;
 	struct device_attribute dev_attr;

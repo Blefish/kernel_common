@@ -54,8 +54,6 @@ void mdp_set_dma_pan_info(struct fb_info *info, struct mdp_dirty_region *dirty,
 	MDPIBUF *iBuf;
 	int bpp = info->var.bits_per_pixel / 8;
 
-	down(&mfd->sem);
-
 	iBuf = &mfd->ibuf;
 
 	if (mfd->display_iova)
@@ -85,7 +83,6 @@ void mdp_set_dma_pan_info(struct fb_info *info, struct mdp_dirty_region *dirty,
 		iBuf->dma_w = info->var.xres;
 		iBuf->dma_h = info->var.yres;
 	}
-	up(&mfd->sem);
 }
 
 void mdp_dma_pan_update(struct fb_info *info)

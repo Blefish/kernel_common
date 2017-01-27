@@ -163,6 +163,7 @@ static struct regulator_ops proccomm_vreg_ops = {
 	.is_enabled	= proccomm_vreg_is_enabled,
 	.get_voltage	= proccomm_vreg_get_voltage,
 	.set_voltage	= proccomm_vreg_set_voltage,
+	.list_voltage	= regulator_list_voltage_linear,
 };
 
 static int proccomm_vreg_probe(struct platform_device *pdev)
@@ -214,6 +215,12 @@ static int proccomm_vreg_probe(struct platform_device *pdev)
 		dev_err(dev, "failed to get regulator init data\n");
 		return -ENOMEM;
 	}
+
+	rdesc->min_uV = initdata->constraints.min_uV;
+	rdesc->uV_step = 25000;
+	rdesc->n_voltages =
+		((initdata->constraints.max_uV - initdata->constraints.min_uV) /
+		rdesc->uV_step) + 1;
 
 	rdesc->name = initdata->constraints.name;
 	rdesc->ops = &proccomm_vreg_ops;

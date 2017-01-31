@@ -226,6 +226,28 @@ static struct clk_pll pll1 = {
 	},
 };
 
+
+#define NSS_PLL_RATE(f, _l, _m, _n, i) \
+	{  \
+		.freq = f,  \
+		.l = _l, \
+		.m = _m, \
+		.n = _n, \
+		.ibits = i, \
+	}
+
+/* Calculation:
+ * Source clock - TCXO @ 19.2MHz
+ * Pre-divided clocks have 19.2MHz / 2
+ * SCLK * l + (SCLK * m / n)
+ */
+static struct pll_freq_tbl pll2_freq_tbl[] = {
+	NSS_PLL_RATE( 806400000,  42, 0, 1, 0x00010581),
+	NSS_PLL_RATE(1024000000,  53, 1, 3, 0x00010581),
+	NSS_PLL_RATE(1200000000, 125, 0, 1, 0x00018581), /* Pre divided */
+	NSS_PLL_RATE(1401600000,  73, 0, 1, 0x00010581),
+};
+
 static struct clk_pll pll2 = {
 	.l_reg = PLL2_STATUS_BASE_REG - 20,
 	.m_reg = PLL2_STATUS_BASE_REG - 16,
@@ -234,6 +256,7 @@ static struct clk_pll pll2 = {
 	.mode_reg = PLL2_STATUS_BASE_REG - 24,
 	.status_reg = PLL2_STATUS_BASE_REG,
 	.status_bit = 16,
+	.freq_tbl = pll2_freq_tbl,
 	.clkr.hw.init = &(struct clk_init_data){
 		.name = "pll2",
 		.parent_names = (const char *[]){ "tcxo" },

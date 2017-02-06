@@ -1,0 +1,58 @@
+#include "qcom-msm7x30-huawei.dtsi"
+
+/ {
+	model = "Huawei IDEOS X5";
+
+	gen-vkeys {
+		compatible = "qcom,gen-vkeys";
+		label = "synaptics_i2c_rmi4_hw";
+		qcom,disp-maxx = <480>;
+		qcom,disp-maxy = <800>;
+		qcom,panel-maxx = <480>;
+		qcom,panel-maxy = <882>;
+		qcom,key-codes = <158 139 172 217>;
+		qcom,y-offset = <41>;
+	};
+
+	mmcoops {
+		compatible = "mmcoops";
+		start-offset-blk = <1048576>; /* mmcblk0p7 */
+		size-bytes = <512000>; /* 500 KiB */
+	};
+
+	soc: soc {
+		mdp@A3F00000 {
+			mddi@AD600000 {
+				nt35582 {
+					compatible	= "qcom,mddi-panel";
+					panel-on	= <0x1100 0 0xff 125>;
+					panel-off	= <0x1000 0 0xff 10>;
+					panel-init	= <0xB101 0x01
+							   0xB102 0x82
+							   0xB107 0x5A
+							   0x4400 0x00
+							   0x4401 0xC8>;
+				};
+			};
+		};
+
+		msm-i2c@ACD00000 {
+			synaptics-rmi4@70 {
+				compatible = "synaptics,rmi4-hw";
+				reg = <0x70>;
+				interrupt-parent = <&tlmm>;
+				interrupts = <148 IRQ_TYPE_LEVEL_LOW>;
+
+				avdd-supply = <&ldo10>;
+
+				gpio-reset = <&tlmm 85 0>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&ts_irq>;
+
+				synaptics,panel-coords = <480 882>;
+				synaptics,display-coords = <480 800>;
+			};
+		};
+	};
+};

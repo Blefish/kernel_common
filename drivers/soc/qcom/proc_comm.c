@@ -19,21 +19,18 @@
 #include <linux/delay.h>
 #include <linux/io.h>
 #include <linux/module.h>
-#include <linux/mfd/syscon.h>
 #include <linux/of_platform.h>
 #include <linux/platform_device.h>
-#include <linux/regmap.h>
 #include <soc/qcom/proc_comm.h>
 #ifdef CONFIG_MSM_SMD
 #include <soc/qcom/smsm.h>
 #endif
 
 struct proccomm_data {
-	struct regmap *ipc_regmap;
-	struct regmap *smem_regmap;
+	void __iomem *smem_base;
+	void __iomem *apcs_base;
 	int ipc_offset;
 	int ipc_bit;
-	void __iomem *shared_ram;
 
 	spinlock_t lock;
 	bool pcom_disabled;
@@ -43,7 +40,7 @@ static struct proccomm_data *pcom_data;
 
 static inline void notify_other_proc_comm(struct proccomm_data *data)
 {
-	regmap_write(data->ipc_regmap, data->ipc_offset, BIT(data->ipc_bit));
+	__raw_writel(BIT(data->ipc_bit), data->apcs_base + data->ipc_offset);
 }
 
 #define APP_COMMAND	0x00
@@ -64,18 +61,12 @@ static inline void notify_other_proc_comm(struct proccomm_data *data)
  * restart so the msm_proc_comm() routine can restart
  * the operation from the beginning.
  */
-static int proc_comm_wait_for(struct proccomm_data *data,
-			      unsigned int reg, unsigned int val)
+static int proc_comm_wait_for(void __iomem *addr, unsigned value)
 {
-	unsigned int value;
-	int ret;
-
 	while (1) {
 		/* Barrier here prevents excessive spinning */
 		mb();
-
-		ret = regmap_read(data->smem_regmap, reg, &value);
-		if (!ret && val == value)
+		if (readl_relaxed(addr) == value)
 			return 0;
 
 #ifdef CONFIG_MSM_SMD
@@ -90,20 +81,23 @@ static int proc_comm_wait_for(struct proccomm_data *data,
 void msm_proc_comm_reset_modem_now(void)
 {
 	struct proccomm_data *data = pcom_data;
+	void __iomem *base;
 	unsigned long flags;
 
 	if (!data)
 		return;
 
+	base = data->smem_base;
+
 	spin_lock_irqsave(&data->lock, flags);
 
 again:
-	if (proc_comm_wait_for(data, MDM_STATUS, PCOM_READY))
+	if (proc_comm_wait_for(base + MDM_STATUS, PCOM_READY))
 		goto again;
 
-	regmap_write(data->smem_regmap, APP_COMMAND, PCOM_RESET_MODEM);
-	regmap_write(data->smem_regmap, APP_DATA1, 0);
-	regmap_write(data->smem_regmap, APP_DATA2, 0);
+	writel_relaxed(PCOM_RESET_MODEM, base + APP_COMMAND);
+	writel_relaxed(0, base + APP_DATA1);
+	writel_relaxed(0, base + APP_DATA2);
 
 	spin_unlock_irqrestore(&data->lock, flags);
 
@@ -118,8 +112,8 @@ EXPORT_SYMBOL(msm_proc_comm_reset_modem_now);
 int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
 {
 	struct proccomm_data *data = pcom_data;
+	void __iomem *base;
 	unsigned long flags;
-	unsigned int val;
 	int ret;
 
 	if (!data)
@@ -128,32 +122,36 @@ int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
 	if (data->pcom_disabled)
 		return -EIO;
 
+	base = data->smem_base;
+
 	spin_lock_irqsave(&data->lock, flags);
 
 again:
-	if (proc_comm_wait_for(data, MDM_STATUS, PCOM_READY))
+	if (proc_comm_wait_for(base + MDM_STATUS, PCOM_READY))
 		goto again;
 
-	regmap_write(data->smem_regmap, APP_COMMAND, cmd);
-	regmap_write(data->smem_regmap, APP_DATA1, data1 ? *data1 : 0);
-	regmap_write(data->smem_regmap, APP_DATA2, data2 ? *data2 : 0);
+	writel_relaxed(cmd, base + APP_COMMAND);
+	writel_relaxed(data1 ? *data1 : 0, base + APP_DATA1);
+	writel_relaxed(data2 ? *data2 : 0, base + APP_DATA2);
 
 	/* Make sure the writes complete before notifying the other side */
 	wmb();
 	notify_other_proc_comm(data);
 
-	if (proc_comm_wait_for(data, APP_COMMAND, PCOM_CMD_DONE))
+	if (proc_comm_wait_for(base + APP_COMMAND, PCOM_CMD_DONE))
 		goto again;
 
-	ret = regmap_read(data->smem_regmap, APP_STATUS, &val);
-	if (!ret && val == PCOM_CMD_SUCCESS) {
+	if (readl_relaxed(base + APP_STATUS) == PCOM_CMD_SUCCESS) {
 		if (data1)
-			regmap_read(data->smem_regmap, APP_DATA1, data1);
+			*data1 = readl_relaxed(base + APP_DATA1);
 		if (data2)
-			regmap_read(data->smem_regmap, APP_DATA2, data2);
+			*data2 = readl_relaxed(base + APP_DATA2);
+		ret = 0;
+	} else {
+		ret = -EIO;
 	}
 
-	regmap_write(data->smem_regmap, APP_COMMAND, PCOM_CMD_IDLE);
+	writel_relaxed(PCOM_CMD_IDLE, base + APP_COMMAND);
 
 	switch (cmd) {
 	case PCOM_RESET_CHIP:
@@ -173,7 +171,7 @@ EXPORT_SYMBOL(msm_proc_comm);
 
 static int proccomm_probe(struct platform_device *pdev)
 {
-	struct device_node *syscon_np;
+	struct resource *res;
 	const char *key;
 	struct device *dev = &pdev->dev;
 	struct proccomm_data *data;
@@ -185,42 +183,33 @@ static int proccomm_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	}
 
-	key = "qcom,ipc";
-	syscon_np = of_parse_phandle(pdev->dev.of_node, key, 0);
-	if (!syscon_np) {
-		dev_err(dev, "no qcom,ipc node\n");
-		return -ENODEV;
-	}
-	data->ipc_regmap = syscon_node_to_regmap(syscon_np);
-	if (IS_ERR(data->ipc_regmap)) {
-		ret = PTR_ERR(data->ipc_regmap);
-		dev_err(dev, "failed to get ipc regmap\n");
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "smem");
+	data->smem_base = devm_ioremap_resource(dev, res);
+	if (IS_ERR(data->smem_base)) {
+		ret = PTR_ERR(data->smem_base);
+		dev_err(dev, "failed to ioremap 'smem_base' ret=%d\n", ret);
 		return ret;
 	}
 
-	ret = of_property_read_u32_index(dev->of_node, key, 1,
+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "apcs");
+	data->apcs_base = devm_ioremap_resource(dev, res);
+	if (IS_ERR(data->apcs_base)) {
+		ret = PTR_ERR(data->apcs_base);
+		dev_err(dev, "failed to ioremap 'apcs_base' ret=%d\n", ret);
+		return ret;
+	}
+
+	key = "qcom,ipc";
+	ret = of_property_read_u32_index(dev->of_node, key, 0,
 					 &data->ipc_offset);
 	if (ret < 0) {
 		dev_err(dev, "no offset in %s ret=%d\n", key, ret);
 		return ret;
 	}
 
-	ret = of_property_read_u32_index(dev->of_node, key, 2, &data->ipc_bit);
+	ret = of_property_read_u32_index(dev->of_node, key, 1, &data->ipc_bit);
 	if (ret < 0) {
 		dev_err(dev, "no bit in %s ret=%d\n", key, ret);
-		return ret;
-	}
-
-	key = "qcom,smem";
-	syscon_np = of_parse_phandle(pdev->dev.of_node, key, 0);
-	if (!syscon_np) {
-		dev_err(dev, "no qcom,smem node\n");
-		return -ENODEV;
-	}
-	data->smem_regmap = syscon_node_to_regmap(syscon_np);
-	if (IS_ERR(data->ipc_regmap)) {
-		ret = PTR_ERR(data->ipc_regmap);
-		dev_err(dev, "failed to get smem regmap\n");
 		return ret;
 	}
 

@@ -124,19 +124,19 @@ static int acpuclk_msm7x30_clk_determine_rate(struct clk_hw *hw,
 static int acpuclk_msm7x30_clk_set_parent(struct clk_hw *hw, u8 index)
 {
 	struct clk_acpu *a = to_clk_acpu(hw);
-	uint32_t reg_clksel, reg_clkctl, src_sel;
+	uint32_t reg_clksel, reg_clkctl, src_num;
 
 	pr_debug("%s: changing parent to %d\n", __func__, index);
 
 	reg_clksel = readl_relaxed(a->base + SCSS_CLK_SEL_ADDR);
 
 	/* CLK_SEL_SRC1NO */
-	src_sel = reg_clksel & 1;
+	src_num = reg_clksel & 1;
 
 	/* Program clock source and divider with 0. */
 	reg_clkctl = readl_relaxed(a->base + SCSS_CLK_CTL_ADDR);
-	reg_clkctl &= ~(0xFF << (8 * src_sel));
-	reg_clkctl |= acpuclk_translate_src[index] << (4 + 8 * src_sel);
+	reg_clkctl &= ~(0xFF << (8 * src_num));
+	reg_clkctl |= acpuclk_translate_src[index] << (4 + 8 * src_num);
 	writel_relaxed(reg_clkctl, a->base + SCSS_CLK_CTL_ADDR);
 
 	/* Toggle clock source. */
@@ -183,7 +183,7 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 	uint32_t axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
 	int i;
 
-	uint32_t reg_clksel, reg_clkctl, src_sel, sel, div;
+	uint32_t reg_clksel, reg_clkctl, src_num, sel, div;
 
 	pr_debug("%s: changing rate to %lu parent %lu\n",
 		 __func__, rate, parent_rate);
@@ -205,17 +205,17 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 	reg_clksel = readl_relaxed(a->base + SCSS_CLK_SEL_ADDR);
 
 	/* CLK_SEL_SRC1NO */
-	src_sel = reg_clksel & 1;
+	src_num = reg_clksel & 1;
 
 	/* Program clock source and divider. */
 	reg_clkctl = readl_relaxed(a->base + SCSS_CLK_CTL_ADDR);
 
 	/* Copy parent selector from old parent. */
-	sel = (reg_clkctl >> (12 - (8 * src_sel))) & 0x7;
+	sel = (reg_clkctl >> (12 - (8 * src_num))) & 0x7;
 
-	reg_clkctl &= ~(0xFF << (8 * src_sel));
-	reg_clkctl |= sel << (4 + 8 * src_sel);
-	reg_clkctl |= div << (0 + 8 * src_sel);
+	reg_clkctl &= ~(0xFF << (8 * src_num));
+	reg_clkctl |= sel << (4 + 8 * src_num);
+	reg_clkctl |= div << (0 + 8 * src_num);
 	writel_relaxed(reg_clkctl, a->base + SCSS_CLK_CTL_ADDR);
 
 	/* Toggle clock source. */
@@ -246,7 +246,7 @@ static int acpuclk_msm7x30_clk_set_rate_and_parent(struct clk_hw *hw,
 	uint32_t axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
 	int i;
 
-	uint32_t reg_clksel, reg_clkctl, src_sel, div;
+	uint32_t reg_clksel, reg_clkctl, src_num, div;
 
 	pr_debug("%s: changing rate to %lu parent rate %lu, parent to %d\n",
 		__func__, rate, parent_rate, index);
@@ -268,13 +268,13 @@ static int acpuclk_msm7x30_clk_set_rate_and_parent(struct clk_hw *hw,
 	reg_clksel = readl_relaxed(a->base + SCSS_CLK_SEL_ADDR);
 
 	/* CLK_SEL_SRC1NO */
-	src_sel = reg_clksel & 1;
+	src_num = reg_clksel & 1;
 
 	/* Program clock source and divider. */
 	reg_clkctl = readl_relaxed(a->base + SCSS_CLK_CTL_ADDR);
-	reg_clkctl &= ~(0xFF << (8 * src_sel));
-	reg_clkctl |= acpuclk_translate_src[index] << (4 + 8 * src_sel);
-	reg_clkctl |= div << (0 + 8 * src_sel);
+	reg_clkctl &= ~(0xFF << (8 * src_num));
+	reg_clkctl |= acpuclk_translate_src[index] << (4 + 8 * src_num);
+	reg_clkctl |= div << (0 + 8 * src_num);
 	writel_relaxed(reg_clkctl, a->base + SCSS_CLK_CTL_ADDR);
 
 	/* Toggle clock source. */

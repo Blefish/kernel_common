@@ -333,7 +333,7 @@ static int acpuclk_msm7x30_probe(struct platform_device *pdev)
 	if (IS_ERR(acpuclk->base))
 		return PTR_ERR(acpuclk->base);
 
-	acpuclk->axi_clk = clk_get(dev, NULL);
+	acpuclk->axi_clk = devm_clk_get(dev, 0);
 	if (IS_ERR(acpuclk->axi_clk))
 		return PTR_ERR(acpuclk->axi_clk);
 

@@ -56,7 +56,6 @@ struct clk_acpu {
 	struct axi_pair *axi_pairs;
 	int axi_pairs_count;
 	unsigned long axi_freq;
-	u8 parent_index;
 
 	struct clk_init_data init_data;
 	struct clk_hw hw;
@@ -149,8 +148,6 @@ static int acpuclk_msm7x30_clk_set_parent(struct clk_hw *hw, u8 index)
 	/* Make sure switch to new source is complete. */
 	mb();
 
-	a->parent_index = index;
-
 	return 0;
 }
 
@@ -170,10 +167,8 @@ static u8 acpuclk_msm7x30_clk_get_parent(struct clk_hw *hw)
 	sel = (reg_clkctl >> (12 - (8 * src_num))) & 0x7;
 
 	for (i = 0; i < ARRAY_SIZE(acpuclk_translate_src); i++) {
-		if (acpuclk_translate_src[i] == sel) {
-			a->parent_index = acpuclk_translate_src[i];
+		if (acpuclk_translate_src[i] == sel)
 			return acpuclk_translate_src[i];
-		}
 	}
 
 	return 0;
@@ -188,7 +183,7 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 	uint32_t axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
 	int i;
 
-	uint32_t reg_clksel, reg_clkctl, src_sel, div;
+	uint32_t reg_clksel, reg_clkctl, src_sel, sel, div;
 
 	pr_debug("%s: changing rate to %lu parent %lu\n",
 		 __func__, rate, parent_rate);
@@ -214,8 +209,12 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 
 	/* Program clock source and divider. */
 	reg_clkctl = readl_relaxed(a->base + SCSS_CLK_CTL_ADDR);
+
+	/* Copy parent selector from old parent. */
+	sel = (reg_clkctl >> (12 - (8 * src_sel))) & 0x7;
+
 	reg_clkctl &= ~(0xFF << (8 * src_sel));
-	reg_clkctl |= acpuclk_translate_src[a->parent_index] << (4 + 8 * src_sel);
+	reg_clkctl |= sel << (4 + 8 * src_sel);
 	reg_clkctl |= div << (0 + 8 * src_sel);
 	writel_relaxed(reg_clkctl, a->base + SCSS_CLK_CTL_ADDR);
 
@@ -286,8 +285,6 @@ static int acpuclk_msm7x30_clk_set_rate_and_parent(struct clk_hw *hw,
 
 	/* Make sure switch to new source is complete. */
 	mb();
-
-	a->parent_index = index;
 
 	if (axi_freq < a->axi_freq) {
 		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
@@ -362,7 +359,7 @@ static int acpuclk_msm7x30_probe(struct platform_device *pdev)
 	}
 
 	/* Default to max freq. */
-	acpuclk->axi_freq = acpuclk->axi_pairs[acpuclk->axi_pairs_count-1].axi_freq;
+	acpuclk->axi_freq = acpuclk->axi_pairs[count-1].axi_freq;
 	clk_set_rate(acpuclk->axi_clk, acpuclk->axi_freq);
 
 	reg_clksel = readl_relaxed(acpuclk->base + SCSS_CLK_SEL_ADDR);

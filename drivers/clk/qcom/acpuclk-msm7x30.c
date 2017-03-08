@@ -180,7 +180,7 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 {
 	struct clk_acpu *a = to_clk_acpu(hw);
 
-	uint32_t axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
+	unsigned long axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
 	int i;
 
 	uint32_t reg_clksel, reg_clkctl, src_num, sel, div;
@@ -243,7 +243,7 @@ static int acpuclk_msm7x30_clk_set_rate_and_parent(struct clk_hw *hw,
 {
 	struct clk_acpu *a = to_clk_acpu(hw);
 
-	uint32_t axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
+	unsigned long axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
 	int i;
 
 	uint32_t reg_clksel, reg_clkctl, src_num, div;

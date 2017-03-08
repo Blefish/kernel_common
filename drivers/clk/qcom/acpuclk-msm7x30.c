@@ -198,7 +198,7 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 			axi_freq = a->axi_pairs[i].axi_freq;
 	}
 
-	if (axi_freq != a->axi_freq) {
+	if (axi_freq > a->axi_freq) {
 		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
 		a->axi_freq = axi_freq;
 		clk_set_rate(a->axi_clk, a->axi_freq);
@@ -228,6 +228,12 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 	/* Make sure switch to new source is complete. */
 	mb();
 
+	if (axi_freq < a->axi_freq) {
+		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
+		a->axi_freq = axi_freq;
+		clk_set_rate(a->axi_clk, a->axi_freq);
+	}
+
 	return 0;
 }
 
@@ -251,7 +257,7 @@ static int acpuclk_msm7x30_clk_set_rate_and_parent(struct clk_hw *hw,
 			axi_freq = a->axi_pairs[i].axi_freq;
 	}
 
-	if (axi_freq != a->axi_freq) {
+	if (axi_freq > a->axi_freq) {
 		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
 		a->axi_freq = axi_freq;
 		clk_set_rate(a->axi_clk, a->axi_freq);
@@ -282,6 +288,12 @@ static int acpuclk_msm7x30_clk_set_rate_and_parent(struct clk_hw *hw,
 	mb();
 
 	a->parent_index = index;
+
+	if (axi_freq < a->axi_freq) {
+		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
+		a->axi_freq = axi_freq;
+		clk_set_rate(a->axi_clk, a->axi_freq);
+	}
 
 	return 0;
 }

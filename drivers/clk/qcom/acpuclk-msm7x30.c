@@ -168,7 +168,7 @@ static u8 acpuclk_msm7x30_clk_get_parent(struct clk_hw *hw)
 
 	for (i = 0; i < ARRAY_SIZE(acpuclk_translate_src); i++) {
 		if (acpuclk_translate_src[i] == sel)
-			return acpuclk_translate_src[i];
+			return i;
 	}
 
 	return 0;

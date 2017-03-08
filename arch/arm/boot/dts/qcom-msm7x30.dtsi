@@ -183,21 +183,13 @@
 			compatible = "qcom,ipc-spinlock-dekkers";
 		};
 
-		apcs: syscon@C0182000 {
-			compatible = "syscon";
-			reg = <0xC0182000 0x1000>;
-		};
-
-		smem: syscon@00100000 {
-			compatible = "syscon";
-			reg = <0x00100000 0x100000>;
-		};
-
 		pcom: proccomm {
 			compatible = "qcom,proccomm";
+			reg = <0x100000 0x100000>,
+			      <0xC0182000 0x1000>;
+			reg-names = "smem", "apcs";
 
-			qcom,ipc = <&apcs 8 6>;
-			qcom,smem = <&smem>;
+			qcom,ipc = <8 6>;
 
 			reset {
 				compatible = "qcom,proccomm-reset";

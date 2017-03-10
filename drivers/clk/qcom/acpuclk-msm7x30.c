@@ -81,18 +81,16 @@ static unsigned long acpuclk_msm7x30_clk_recalc_rate(struct clk_hw *hw,
 static int acpuclk_msm7x30_clk_determine_rate(struct clk_hw *hw,
 					      struct clk_rate_request *req)
 {
-	struct clk_acpu *a = to_clk_acpu(hw);
-	u32 which;
-	u32 parent_count = a->init_data.num_parents;
+	int i;
 
 	pr_debug("%s: requested freq %lu\n", __func__, req->rate);
 
 	/* Try to find parent clock that can be divided to match requested
 	 * frequency. */
-	for (which = 0; which < parent_count; which++) {
-		struct clk_hw *parent = clk_hw_get_parent_by_index(hw, which);
-		unsigned long parent_rate;
-		uint32_t divider, remainder;
+	for (i = 0; i < clk_hw_get_num_parents(hw); i++) {
+		struct clk_hw *parent = clk_hw_get_parent_by_index(hw, i);
+		unsigned long parent_rate, divider;
+		uint32_t remainder;
 
 		if (!parent)
 			continue;
@@ -105,8 +103,8 @@ static int acpuclk_msm7x30_clk_determine_rate(struct clk_hw *hw,
 		remainder = do_div(divider, req->rate);
 
 		if (!remainder) {
-			pr_debug("%s: found exact match %d with divider %d\n",
-				 __func__, which, divider);
+			pr_debug("%s: found exact match %d with divider %lu\n",
+				 __func__, i, divider);
 			req->best_parent_hw = parent;
 			req->best_parent_rate = parent_rate;
 			return 0;

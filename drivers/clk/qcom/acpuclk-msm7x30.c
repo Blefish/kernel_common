@@ -55,10 +55,10 @@ struct clk_acpu {
 	struct clk *axi_clk;
 	struct axi_pair *axi_pairs;
 	int axi_pairs_count;
-	unsigned long axi_freq;
 
 	struct clk_init_data init_data;
 	struct clk_hw hw;
+	struct notifier_block clk_nb;
 };
 
 #define to_clk_acpu(_hw) \
@@ -177,25 +177,7 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 					unsigned long parent_rate)
 {
 	struct clk_acpu *a = to_clk_acpu(hw);
-
-	unsigned long axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
-	int i;
-
 	uint32_t reg_clksel, reg_clkctl, src_num, sel, div;
-
-	pr_debug("%s: changing rate to %lu parent %lu\n",
-		 __func__, rate, parent_rate);
-
-	for (i = 0; i < a->axi_pairs_count; i++) {
-		if (rate >= a->axi_pairs[i].cpu_freq)
-			axi_freq = a->axi_pairs[i].axi_freq;
-	}
-
-	if (axi_freq > a->axi_freq) {
-		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
-		a->axi_freq = axi_freq;
-		clk_set_rate(a->axi_clk, a->axi_freq);
-	}
 
 	/* Divider is offset by 1, 0 means divide by 1. */
 	div = (parent_rate / rate) - 1;
@@ -225,12 +207,6 @@ static int acpuclk_msm7x30_clk_set_rate(struct clk_hw *hw,
 	/* Make sure switch to new source is complete. */
 	mb();
 
-	if (axi_freq < a->axi_freq) {
-		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
-		a->axi_freq = axi_freq;
-		clk_set_rate(a->axi_clk, a->axi_freq);
-	}
-
 	return 0;
 }
 
@@ -240,25 +216,7 @@ static int acpuclk_msm7x30_clk_set_rate_and_parent(struct clk_hw *hw,
 						   u8 index)
 {
 	struct clk_acpu *a = to_clk_acpu(hw);
-
-	unsigned long axi_freq = a->axi_pairs[a->axi_pairs_count-1].axi_freq;
-	int i;
-
 	uint32_t reg_clksel, reg_clkctl, src_num, div;
-
-	pr_debug("%s: changing rate to %lu parent rate %lu, parent to %d\n",
-		__func__, rate, parent_rate, index);
-
-	for (i = 0; i < a->axi_pairs_count; i++) {
-		if (rate >= a->axi_pairs[i].cpu_freq)
-			axi_freq = a->axi_pairs[i].axi_freq;
-	}
-
-	if (axi_freq > a->axi_freq) {
-		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
-		a->axi_freq = axi_freq;
-		clk_set_rate(a->axi_clk, a->axi_freq);
-	}
 
 	/* Divider is offset by 1, 0 means divide by 1. */
 	div = (parent_rate / rate) - 1;
@@ -284,12 +242,6 @@ static int acpuclk_msm7x30_clk_set_rate_and_parent(struct clk_hw *hw,
 	/* Make sure switch to new source is complete. */
 	mb();
 
-	if (axi_freq < a->axi_freq) {
-		pr_debug("%s: changing AXI rate to %lu\n", __func__, axi_freq);
-		a->axi_freq = axi_freq;
-		clk_set_rate(a->axi_clk, a->axi_freq);
-	}
-
 	return 0;
 }
 
@@ -301,6 +253,38 @@ static const struct clk_ops acpuclk_msm7x30_clk_ops = {
 	.set_rate = acpuclk_msm7x30_clk_set_rate,
 	.set_rate_and_parent = acpuclk_msm7x30_clk_set_rate_and_parent,
 };
+
+/*
+ * This notifier function is called for the pre-rate and post-rate change
+ * notifications of the parent clock of cpuclk.
+ */
+static int acpuclk_msm7x30_notifier_cb(struct notifier_block *nb,
+				       unsigned long event, void *data)
+{
+	struct clk_notifier_data *ndata = data;
+	struct clk_acpu *a = container_of(nb, struct clk_acpu, clk_nb);
+	int i;
+	int err = 0;
+	bool incr = ndata->new_rate > ndata->old_rate;
+	unsigned long axi_freq = a->axi_pairs[0].axi_freq;
+
+	for (i = 0; i < a->axi_pairs_count; i++) {
+		if (ndata->new_rate >= a->axi_pairs[i].cpu_freq) {
+			axi_freq = a->axi_pairs[i].axi_freq;
+			break;
+		}
+	}
+
+	pr_debug("%s: new CPU freq %lu, new AXI freq %lu, incr %d\n",
+		 __func__, ndata->new_rate, axi_freq, incr);
+
+	if ((event == PRE_RATE_CHANGE && incr) ||
+	    (event == POST_RATE_CHANGE && !incr)) {
+		clk_set_rate(a->axi_clk, axi_freq);
+	}
+
+	return notifier_from_errno(err);
+}
 
 static int acpuclk_msm7x30_probe(struct platform_device *pdev)
 {
@@ -357,8 +341,7 @@ static int acpuclk_msm7x30_probe(struct platform_device *pdev)
 	}
 
 	/* Default to max freq. */
-	acpuclk->axi_freq = acpuclk->axi_pairs[count-1].axi_freq;
-	clk_set_rate(acpuclk->axi_clk, acpuclk->axi_freq);
+	clk_set_rate(acpuclk->axi_clk, acpuclk->axi_pairs[0].axi_freq);
 
 	reg_clksel = readl_relaxed(acpuclk->base + SCSS_CLK_SEL_ADDR);
 
@@ -389,6 +372,9 @@ static int acpuclk_msm7x30_probe(struct platform_device *pdev)
 	clk = devm_clk_register(dev, &acpuclk->hw);
 	if (IS_ERR(clk))
 		return PTR_ERR(clk);
+
+	acpuclk->clk_nb.notifier_call = acpuclk_msm7x30_notifier_cb;
+	clk_notifier_register(clk, &acpuclk->clk_nb);
 
 	of_clk_add_provider(node, of_clk_src_simple_get, clk);
 

@@ -358,16 +358,13 @@ static int __init msm_init_irq(struct device_node *node,
 	/* don't use vic */
 	writel(0, VIC_CONFIG);
 
-	vic_data.domain = irq_domain_add_simple(node, num_irqs, 0,
+	vic_data.domain = irq_domain_add_linear(node, num_irqs,
 						&msm_vic_irqdomain_ops,
 						&vic_data);
 	if (!vic_data.domain) {
 		pr_err("%s: failed to register domain\n", __func__);
 		return -ENODEV;
 	}
-
-	for (i = 0; i < num_irqs; i++)
-		irq_create_mapping(vic_data.domain, i);
 
 	set_handle_irq(vic_handle_irq);
 

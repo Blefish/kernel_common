@@ -237,7 +237,7 @@
 			interrupts = <79 IRQ_TYPE_NONE>;
 			#dma-cells = <1>;
 
-			clocks = <&gcc ADM_CLK>, <&gcc ADM_P_CLK>;
+			clocks = <&gcc AXI_ADM_CLK>, <&gcc ADM_P_CLK>;
 			clock-names = "core", "iface";
 
 			qcom,ee = <2>;

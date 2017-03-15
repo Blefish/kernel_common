@@ -25,6 +25,7 @@
 			mddi@AD600000 {
 				nt35582 {
 					compatible	= "qcom,mddi-panel";
+					clock-frequency	= <192000000>;
 					panel-on	= <0x1100 0 0xff 125>;
 					panel-off	= <0x1000 0 0xff 10>;
 					panel-init	= <0xB101 0x01
@@ -32,6 +33,12 @@
 							   0xB107 0x5A
 							   0x4400 0x00
 							   0x4401 0xC8>;
+					panel-bpp	= <16>;
+					panel-refx100	= <5400>;
+					panel-rev	= <1>;
+					panel-vback	= <6>;
+					panel-xres	= <480>;
+					panel-yres	= <800>;
 				};
 			};
 		};

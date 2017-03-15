@@ -3459,6 +3459,10 @@ static const struct reg_init {
 	{USBH_NS_REG, BIT(15), BIT(15)},
 	{USBH2_NS_REG, BIT(6), BIT(6)},
 	{USBH3_NS_REG, BIT(6), BIT(6)},
+
+	/* Do not sync graphics cores from AXI. */
+	{GRP_2D_NS_REG, BM(14, 12), 0x0},
+	{GRP_NS_REG, BM(14, 12), 0x0},
 };
 
 static int gcc_msm7x30_clock_init(struct regmap *regmap)

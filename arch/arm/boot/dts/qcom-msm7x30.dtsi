@@ -554,7 +554,7 @@
 			reg-names = "kgsl_3d0_reg_memory";
 			interrupts = <83 0>;
 			interrupt-names = "kgsl_3d0_irq";
-
+			vdd-supply = <&fs_gfx3d>;
 			clocks		= <&gcc GRP_3D_CLK>,
 					  <&gcc GRP_3D_P_CLK>,
 					  <&gcc IMEM_CLK>,
@@ -601,6 +601,7 @@
 				 <&gcc ROTATOR_P_CLK>,
 				 <&gcc ROTATOR_IMEM_CLK>;
 			clock-names = "core", "iface", "imem";
+			vdd-supply = <&fs_rot>;
 		};
 
 		mdp@A3F00000 {

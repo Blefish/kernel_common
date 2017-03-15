@@ -62,14 +62,12 @@ struct lcd_panel_info {
 	__u32 v_front_porch;
 	__u32 v_pulse_width;
 	__u32 hw_vsync_mode;
-	__u32 vsync_notifier_period;
 	__u32 blt_ctrl;
 	__u32 rev;
 };
 
 struct mddi_panel_info {
 	__u32 vdopkt;
-	bool is_type1;
 };
 
 struct msm_panel_info {
@@ -81,8 +79,6 @@ struct msm_panel_info {
 	DISP_TARGET_PHYS pdest;
 	__u32 fb_num;
 	__u32 clk_rate;
-	__u32 clk_min;
-	__u32 clk_max;
 	__u32 frame_rate;
 
 	struct mddi_panel_info mddi;

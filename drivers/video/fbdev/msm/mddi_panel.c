@@ -1,7 +1,7 @@
 
 /*
  * MDDI Generic Panel
- * Copyright (C) 2016  Rudolf Tammekivi <rtammekivi@gmail.com>
+ * Copyright (C) 2017  Rudolf Tammekivi <rtammekivi@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see [http://www.gnu.org/licenses/].
  */
-#define DEBUG
+
 #include <linux/module.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
@@ -108,28 +108,28 @@ static int mddi_panel_probe(struct platform_device *pdev)
 		return ret;
 
 	memset(&pinfo, 0, sizeof(pinfo));
-
-	/* TODO: read from dt */
 	pinfo.dev = dev;
-	pinfo.xres = 480;
-	pinfo.yres = 800;
-	pinfo.type = MDDI_PANEL;
-	pinfo.pdest = DISPLAY_1;
-	pinfo.mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
-	pinfo.mddi.is_type1 = true;
-	pinfo.bpp = 16;
-	pinfo.lcd.refx100 = 5400;
-	pinfo.lcd.v_back_porch = 6;
-	pinfo.lcd.v_front_porch = 0;
-	pinfo.lcd.v_pulse_width = 0;
-	pinfo.lcd.rev = 1;
+	pinfo.fb_num = MSM_FB_NUM;
 	pinfo.lcd.vsync_enable = true;
 	pinfo.lcd.hw_vsync_mode = true;
-	pinfo.lcd.vsync_notifier_period = (1 * HZ);
-	pinfo.clk_rate = 192000000;
-	pinfo.clk_min = 192000000;
-	pinfo.clk_max = 192000000;
-	pinfo.fb_num = MSM_FB_NUM;
+	pinfo.mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;
+	pinfo.pdest = DISPLAY_1;
+	pinfo.type = MDDI_PANEL;
+
+	/* OR important properties. */
+	ret |= of_property_read_u32(node, "clock-frequency", &pinfo.clk_rate);
+	ret |= of_property_read_u32(node, "panel-bpp", &pinfo.bpp);
+	ret |= of_property_read_u32(node, "panel-refx100", &pinfo.lcd.refx100);
+	of_property_read_u32(node, "panel-rev", &pinfo.lcd.rev);
+	of_property_read_u32(node, "panel-vback", &pinfo.lcd.v_back_porch);
+	of_property_read_u32(node, "panel-vfront", &pinfo.lcd.v_front_porch);
+	of_property_read_u32(node, "panel-vpulse", &pinfo.lcd.v_pulse_width);
+	ret |= of_property_read_u32(node, "panel-xres", &pinfo.xres);
+	ret |= of_property_read_u32(node, "panel-yres", &pinfo.yres);
+	if (ret) {
+		dev_err(dev, "failed to read some properties\n");
+		return ret;
+	}
 
 	mddi_write_commands(data, PANEL_INIT);
 

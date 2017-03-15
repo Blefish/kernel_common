@@ -56,7 +56,6 @@ struct clk_acpu {
 	struct axi_pair *axi_pairs;
 	int axi_pairs_count;
 
-	struct clk_init_data init_data;
 	struct clk_hw hw;
 	struct notifier_block clk_nb;
 };
@@ -364,8 +363,6 @@ static int acpuclk_msm7x30_probe(struct platform_device *pdev)
 	init.flags = CLK_SET_RATE_PARENT;
 	init.parent_names = acpuclk_parents;
 	init.num_parents = ARRAY_SIZE(acpuclk_parents);
-
-	memcpy(&acpuclk->init_data, &init, sizeof(acpuclk->init_data));
 
 	acpuclk->hw.init = &init;
 

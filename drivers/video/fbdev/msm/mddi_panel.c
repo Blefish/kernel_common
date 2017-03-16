@@ -109,7 +109,6 @@ static int mddi_panel_probe(struct platform_device *pdev)
 
 	memset(&pinfo, 0, sizeof(pinfo));
 	pinfo.dev = dev;
-	pinfo.fb_num = MSM_FB_NUM;
 	pinfo.lcd.vsync_enable = true;
 	pinfo.lcd.hw_vsync_mode = true;
 	pinfo.mddi.vdopkt = MDDI_DEFAULT_PRIM_PIX_ATTR;

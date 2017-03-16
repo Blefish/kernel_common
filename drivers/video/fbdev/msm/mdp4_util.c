@@ -443,8 +443,6 @@ irqreturn_t mdp4_isr(int irq, void *ptr)
 
 	if (isr & INTR_PRIMARY_VSYNC) {
 		mdp4_stat.intr_vsync_p++;
-		if (panel & MDP4_PANEL_LCDC)
-			mdp4_primary_vsync_lcdc();
 	}
 
 	if (isr & INTR_DMA_P_HISTOGRAM) {

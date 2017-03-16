@@ -109,7 +109,7 @@ uint32_t mdp_block2base(uint32_t block)
 
 u32 mdp_get_panel_framerate(struct msm_fb_data_type *mfd)
 {
-	u32 frame_rate = 0, pixel_rate = 0, total_pixel;
+	u32 frame_rate = 0;
 	struct msm_panel_info *panel_info = &mfd->panel_info;
 
 	if (mfd->dest == DISPLAY_LCD)

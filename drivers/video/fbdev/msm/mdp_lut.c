@@ -86,26 +86,26 @@ int mdp_hist_lut_init(void)
 	INIT_LIST_HEAD(&mdp_hist_lut_list);
 
 	if (mdp_rev >= MDP_REV_30) {
-		temp = kmalloc(sizeof(struct mdp_hist_lut_mgmt), GFP_KERNEL);
+		temp = kmalloc(sizeof(*temp), GFP_KERNEL);
 		if (!temp)
 			goto exit;
 		mdp_hist_lut_init_mgmt(temp, MDP_BLOCK_DMA_P);
 	}
 
 	if (mdp_rev >= MDP_REV_40) {
-		temp = kmalloc(sizeof(struct mdp_hist_lut_mgmt), GFP_KERNEL);
+		temp = kmalloc(sizeof(*temp), GFP_KERNEL);
 		if (!temp)
 			goto exit_list;
 		mdp_hist_lut_init_mgmt(temp, MDP_BLOCK_VG_1);
 
-		temp = kmalloc(sizeof(struct mdp_hist_lut_mgmt), GFP_KERNEL);
+		temp = kmalloc(sizeof(*temp), GFP_KERNEL);
 		if (!temp)
 			goto exit_list;
 		mdp_hist_lut_init_mgmt(temp, MDP_BLOCK_VG_2);
 	}
 
 	if (mdp_rev > MDP_REV_42) {
-		temp = kmalloc(sizeof(struct mdp_hist_lut_mgmt), GFP_KERNEL);
+		temp = kmalloc(sizeof(*temp), GFP_KERNEL);
 		if (!temp)
 			goto exit_list;
 		mdp_hist_lut_init_mgmt(temp, MDP_BLOCK_DMA_S);
@@ -120,7 +120,7 @@ exit:
 }
 
 static int mdp_hist_lut_block2mgmt(uint32_t block,
-		struct mdp_hist_lut_mgmt **mgmt)
+				   struct mdp_hist_lut_mgmt **mgmt)
 {
 	struct mdp_hist_lut_mgmt *temp, *output;
 	int ret = 0;
@@ -143,13 +143,15 @@ static int mdp_hist_lut_block2mgmt(uint32_t block,
 }
 
 static int mdp_hist_lut_write_off(struct mdp_hist_lut_data *data,
-		struct mdp_hist_lut_info *info, uint32_t offset)
+				  struct mdp_hist_lut_info *info,
+				  uint32_t offset)
 {
 	int i;
-	uint32_t element[MDP_HIST_LUT_SIZE];
+	uint32_t *element;
 	uint32_t base = mdp_block2base(info->block);
 	uint32_t sel = info->bank_sel;
 
+	element = kcalloc(MDP_HIST_LUT_SIZE, sizeof(*element), GFP_KERNEL);
 
 	if (data->len != MDP_HIST_LUT_SIZE) {
 		pr_err("%s: data->len != %d", __func__, MDP_HIST_LUT_SIZE);
@@ -169,11 +171,13 @@ static int mdp_hist_lut_write_off(struct mdp_hist_lut_data *data,
 	}
 	mdp_clk_ctrl(0);
 
+	kfree(element);
+
 	return 0;
 }
 
 static int mdp_hist_lut_write(struct mdp_hist_lut_data *data,
-						struct mdp_hist_lut_info *info)
+			      struct mdp_hist_lut_info *info)
 {
 	int ret = 0;
 

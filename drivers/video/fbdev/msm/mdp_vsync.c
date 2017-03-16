@@ -125,6 +125,8 @@ int mdp_config_vsync(struct msm_fb_data_type *mfd)
 {
 	struct mdp_vsync_data *data = vsync_data;
 
+	uint32_t total_porch_lines;
+
 	uint32_t vsync_cnt_cfg_dem;
 	unsigned long mdp_vsync_clk_speed_hz;
 
@@ -141,10 +143,10 @@ int mdp_config_vsync(struct msm_fb_data_type *mfd)
 		return -EINVAL;
 	}
 
-	mfd->total_porch_lines = mfd->panel_info.lcd.v_back_porch +
+	total_porch_lines = mfd->panel_info.lcd.v_back_porch +
 		mfd->panel_info.lcd.v_front_porch +
 		mfd->panel_info.lcd.v_pulse_width;
-	mfd->total_lcd_lines = mfd->panel_info.yres + mfd->total_porch_lines;
+	mfd->total_lcd_lines = mfd->panel_info.yres + total_porch_lines;
 	mfd->use_mdp_vsync = 1;
 
 	mdp_vsync_clk_speed_hz = clk_get_rate(data->vsync_clk);

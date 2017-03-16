@@ -939,7 +939,6 @@ static void mdp4_overlay_update_mddi(struct msm_fb_data_type *mfd)
 	uint16_t mddi_ld_param, mddi_vdo_packet_reg;
 	uint32_t data;
 
-
 	if (mfd->key != MFD_KEY)
 		return;
 

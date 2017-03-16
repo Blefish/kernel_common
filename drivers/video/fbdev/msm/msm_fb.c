@@ -5,6 +5,7 @@
  *
  * Copyright (C) 2007 Google Incorporated
  * Copyright (c) 2008-2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2016-2017, Rudolf Tammekivi
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -617,10 +618,8 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 
 	mfd->var_xres = panel_info->xres;
 	mfd->var_yres = panel_info->yres;
-	mfd->var_frame_rate = panel_info->frame_rate;
 
 	var->pixclock = mfd->panel_info.clk_rate;
-	mfd->var_pixclock = var->pixclock;
 
 	var->xres = panel_info->xres;
 	var->yres = panel_info->yres;
@@ -720,7 +719,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 	if (mfd->cursor_update) {
 		mfd->cursor_buf = dma_alloc_coherent(NULL,
 					MDP_CURSOR_SIZE,
-					(dma_addr_t *) &mfd->cursor_buf_phys,
+					mfd->cursor_buf_phys,
 					GFP_KERNEL);
 
 		if (!mfd->cursor_buf)
@@ -742,7 +741,7 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 			dma_free_coherent(NULL,
 				MDP_CURSOR_SIZE,
 				mfd->cursor_buf,
-				(dma_addr_t) mfd->cursor_buf_phys);
+				*mfd->cursor_buf_phys);
 		return -EPERM;
 	}
 
@@ -770,11 +769,6 @@ static int msm_fb_open(struct fb_info *info, int user)
 	mfd->ref_cnt++;
 
 	return 0;
-}
-
-static void msm_fb_free_base_pipe(struct msm_fb_data_type *mfd)
-{
-	return mdp4_overlay_free_base_pipe(mfd);
 }
 
 static int msm_fb_release(struct fb_info *info, int user)
@@ -890,12 +884,12 @@ static int msm_fb_pan_display_ex(struct fb_info *info,
 		if (!mfd->panel_power_on) /* suspended */
 			return -EPERM;
 	} else {
-	        /*
-                WFD panel info was not getting updated,
-		in case of resolution other than 1280x720
-                */
-                mfd->var_xres = info->var.xres;
-                mfd->var_yres = info->var.yres;
+		/*
+		 * WFD panel info was not getting updated,
+		 * in case of resolution other than 1280x720
+		 */
+		mfd->var_xres = info->var.xres;
+		mfd->var_yres = info->var.yres;
 		/*
 		 * If framebuffer is 2, io pan display is not allowed.
 		 */

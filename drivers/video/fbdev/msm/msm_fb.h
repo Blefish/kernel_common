@@ -45,7 +45,6 @@ struct msm_fb_data_type {
 	/* vsync */
 	bool use_mdp_vsync;
 	__u32 total_lcd_lines;
-	__u32 total_porch_lines;
 
 	int ref_cnt;
 	bool panel_power_on;
@@ -67,15 +66,12 @@ struct msm_fb_data_type {
 	void (*vsync_init) (int cndx);
 	void *vsync_show;
 	void *cursor_buf;
-	void *cursor_buf_phys;
+	dma_addr_t *cursor_buf_phys;
 
 	struct platform_device *pdev;
-	struct platform_device *panel_pdev;
 
 	__u32 var_xres;
 	__u32 var_yres;
-	__u32 var_pixclock;
-	__u32 var_frame_rate;
 
 	struct timer_list msmfb_no_update_notify_timer;
 	struct completion msmfb_update_notify;
@@ -117,7 +113,5 @@ struct msm_fb_data_type *msm_fb_alloc_device(struct device *dev);
 
 void msm_fb_wait_for_fence(struct msm_fb_data_type *mfd);
 int msm_fb_signal_timeline(struct msm_fb_data_type *mfd);
-
-void fill_black_screen(bool on, uint8_t pipe_num, uint8_t mixer_num);
 
 #endif /* MSM_FB_H */

@@ -77,7 +77,6 @@ struct msm_panel_info {
 	__u32 bpp;
 	__u32 type;
 	DISP_TARGET_PHYS pdest;
-	__u32 fb_num;
 	__u32 clk_rate;
 	__u32 frame_rate;
 

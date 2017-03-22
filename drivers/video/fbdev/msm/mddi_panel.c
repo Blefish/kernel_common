@@ -36,7 +36,7 @@ enum mddi_panel_table {
 
 struct mddi_panel_driver_data {
 	u32 *panel_table[PANEL_MAX];
-	size_t panel_table_size[PANEL_MAX];
+	int panel_table_size[PANEL_MAX];
 };
 
 static void mddi_write_commands(struct mddi_panel_driver_data *data,
@@ -68,17 +68,17 @@ static int mddi_populate_tables(struct device *dev,
 	int ret;
 
 	for (i = 0; i < PANEL_MAX; i++) {
-		size_t size = of_property_count_elems_of_size(node,
-							      dt_table_match[i],
-							      sizeof(u32));
-		if (size < 1)
+		int count = of_property_count_elems_of_size(node,
+							    dt_table_match[i],
+							    sizeof(u32));
+		if (count < 1)
 			continue;
 
-		data->panel_table_size[i] = size;
-		data->panel_table[i] = devm_kcalloc(dev, size, sizeof(u32),
+		data->panel_table_size[i] = count;
+		data->panel_table[i] = devm_kcalloc(dev, count, sizeof(u32),
 						    GFP_KERNEL);
 		ret = of_property_read_u32_array(node, dt_table_match[i],
-						 data->panel_table[i], size);
+						 data->panel_table[i], count);
 		if (ret) {
 			dev_dbg(dev, "failed to read '%s' ret=%d\n",
 				dt_table_match[i], ret);

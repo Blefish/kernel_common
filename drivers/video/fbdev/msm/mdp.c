@@ -207,13 +207,13 @@ static void mdp_clk_disable_unprepare(void)
 	mb();
 	vsync_clk_disable_unprepare();
 
-	clk_disable_unprepare(data->core_clk);
+	if (data->lut_clk)
+		clk_disable_unprepare(data->lut_clk);
 
 	if (data->iface_clk)
 		clk_disable_unprepare(data->iface_clk);
 
-	if (data->lut_clk)
-		clk_disable_unprepare(data->lut_clk);
+	clk_disable_unprepare(data->core_clk);
 }
 
 /*

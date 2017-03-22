@@ -1,0 +1,54 @@
+#include "qcom-msm7x30-huawei.dtsi"
+
+/ {
+	model = "Huawei Honor";
+
+	gen-vkeys {
+		compatible = "qcom,gen-vkeys";
+		label = "synaptics_i2c_rmi4_hw";
+		qcom,disp-maxx = <480>;
+		qcom,disp-maxy = <854>;
+		qcom,panel-maxx = <480>;
+		qcom,panel-maxy = <958>;
+		qcom,key-codes = <139 172 158 217>;
+		qcom,y-offset = <41>;
+	};
+
+	soc: soc {
+		mdp@A3F00000 {
+			mddi@AD600000 {
+				nt35560 {
+					compatible	= "qcom,mddi-panel";
+					clock-frequency	= <192000000>;
+					panel-on	= <0x1100 0 0xff 15>;
+					panel-off	= <0x1000 0>;
+					panel-bpp	= <24>;
+					panel-refx100	= <6000>;
+					panel-rev	= <2>;
+					panel-vpulse	= <22>;
+					panel-xres	= <480>;
+					panel-yres	= <854>;
+				};
+			};
+		};
+
+		msm-i2c@ACD00000 {
+			synaptics-rmi4@70 {
+				compatible = "synaptics,rmi4-hw";
+				reg = <0x70>;
+				interrupt-parent = <&tlmm>;
+				interrupts = <148 IRQ_TYPE_LEVEL_LOW>;
+
+				avdd-supply = <&ldo10>;
+
+				gpio-reset = <&tlmm 85 0>;
+
+				pinctrl-names = "default";
+				pinctrl-0 = <&ts_irq>;
+
+				synaptics,panel-coords = <480 958>;
+				synaptics,display-coords = <480 854>;
+			};
+		};
+	};
+};

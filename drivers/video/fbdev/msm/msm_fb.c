@@ -50,8 +50,6 @@ static u32 msm_fb_pseudo_palette[16] = {
 	0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
 };
 
-static struct ion_client *iclient;
-
 u32 msm_fb_debug_enabled;
 /* Setting msm_fb_msg_level to 8 prints out ALL messages */
 u32 msm_fb_msg_level = 7;
@@ -205,14 +203,7 @@ static int msm_fb_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
 	struct msm_fb_data_type *mfd = platform_get_drvdata(pdev);
-	struct msm_panel_info *pinfo = &mfd->panel_info;
 	int ret;
-
-	struct ion_handle *handle;
-	void *virt;
-	ion_phys_addr_t phys;
-	size_t size;
-	unsigned long fb_size;
 
 	dev_info(dev, "%s\n", __func__);
 
@@ -224,23 +215,12 @@ static int msm_fb_probe(struct platform_device *pdev)
 
 	mfd->pdev = pdev;
 
-	iclient = msm_ion_client_create(dev_name(dev));
-	if (IS_ERR(iclient)) {
-		ret = PTR_ERR(iclient);
+	mfd->iclient = msm_ion_client_create(dev_name(dev));
+	if (IS_ERR(mfd->iclient)) {
+		ret = PTR_ERR(mfd->iclient);
 		dev_err(dev, "failed to create ion client\n");
 		return ret;
 	}
-
-	fb_size = pinfo->xres * pinfo->yres * (32 / 8) * MSM_FB_NUM;
-
-	handle = ion_alloc(iclient, fb_size, SZ_4K, mfd->mem_hid, 0);
-	virt = ion_map_kernel(iclient, handle);
-	ion_phys(iclient, handle, &phys, &size);
-
-	mfd->fbram_phys = phys;
-	mfd->fbram_size = size;
-	mfd->fbram = virt;
-	mfd->iclient = iclient;
 
 	mfd->overlay_play_enable = true;
 
@@ -302,6 +282,8 @@ static int msm_fb_remove(struct platform_device *pdev)
 
 	/* remove /dev/fb* */
 	unregister_framebuffer(mfd->fbi);
+
+	ion_free(mfd->iclient, mfd->ihandle);
 
 	return 0;
 }
@@ -434,36 +416,22 @@ static struct fb_ops msm_fb_ops = {
 	.fb_ioctl = msm_fb_ioctl,	/* perform fb specific ioctl (optional) */
 };
 
-static __u32 msm_fb_line_length(__u32 fb_index, __u32 xres, int bpp)
-{
-	/* The adreno GPU hardware requires that the pitch be aligned to
-	   32 pixels for color buffers, so for the cases where the GPU
-	   is writing directly to fb0, the framebuffer pitch
-	   also needs to be 32 pixel aligned */
-
-	if (fb_index == 0)
-		return ALIGN(xres, 32) * bpp;
-	else
-		return xres * bpp;
-}
-
 static int msm_fb_register(struct msm_fb_data_type *mfd)
 {
 	int ret = -ENODEV;
 	int bpp;
 	struct msm_panel_info *panel_info = &mfd->panel_info;
 	struct fb_info *fbi = mfd->fbi;
-	struct fb_fix_screeninfo *fix;
-	struct fb_var_screeninfo *var;
+	struct fb_fix_screeninfo *fix = &fbi->fix;
+	struct fb_var_screeninfo *var = &fbi->var;
 	int *id;
-	int fbram_offset;
-	int remainder;
+
+	ion_phys_addr_t phys;
+	size_t size;
 
 	/*
 	 * fb info initialization
 	 */
-	fix = &fbi->fix;
-	var = &fbi->var;
 
 	fix->type_aux = 0;			/* if type == FB_TYPE_INTERLEAVED_PLANES */
 	fix->visual = FB_VISUAL_TRUECOLOR;	/* True Color */
@@ -584,54 +552,42 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 		break;
 
 	default:
-		MSM_FB_ERR("msm_fb_init: fb %d unkown image type!\n",
-			   mfd->index);
+		pr_err("%s: Invalid image type %d\n", __func__,
+		       mfd->fb_imgType);
+		ret = -EINVAL;
 		return ret;
 	}
-
-	fix->line_length = msm_fb_line_length(mfd->index, panel_info->xres,
-					      bpp);
-
-	/* Make sure all buffers can be addressed on a page boundary by an x
-	 * and y offset */
-
-	remainder = (fix->line_length * panel_info->yres) & (PAGE_SIZE - 1);
-					/* PAGE_SIZE is a power of 2 */
-	if (!remainder)
-		remainder = PAGE_SIZE;
-
-	/*
-	 * calculate smem_len based on max size of two supplied modes.
-	 * Only fb0 has mem. fb1 and fb2 don't have mem.
-	 */
-	if (!bf_supported || mfd->index == 0)
-		fix->smem_len = (msm_fb_line_length(mfd->index,
-						    panel_info->xres,
-						    bpp) *
-				     panel_info->yres + PAGE_SIZE -
-				     remainder) * mfd->fb_page;
-	else if (mfd->index == 1 || mfd->index == 2) {
-		pr_debug("%s:%d no memory is allocated for fb%d!\n",
-			__func__, __LINE__, mfd->index);
-		fix->smem_len = 0;
-	}
-
-	mfd->var_xres = panel_info->xres;
-	mfd->var_yres = panel_info->yres;
-
-	var->pixclock = mfd->panel_info.clk_rate;
 
 	var->xres = panel_info->xres;
 	var->yres = panel_info->yres;
 	var->xres_virtual = panel_info->xres;
-	var->yres_virtual = panel_info->yres * mfd->fb_page +
-		((PAGE_SIZE - remainder)/fix->line_length) * mfd->fb_page;
-	var->bits_per_pixel = bpp * 8;	/* FrameBuffer color depth */
+	var->yres_virtual = panel_info->yres * mfd->fb_page;
+	var->bits_per_pixel = bpp * 8; /* FrameBuffer color depth */
+	var->pixclock = mfd->panel_info.clk_rate;
 	var->reserved[3] = panel_info->frame_rate;
 
-		/*
-		 * id field for fb app
-		 */
+	fix->line_length = panel_info->xres * bpp;
+
+	mfd->ihandle = ion_alloc(mfd->iclient,
+				 fix->line_length * var->yres_virtual,
+				 SZ_4K, mfd->mem_hid, 0);
+	ion_phys(mfd->iclient, mfd->ihandle, &phys, &size);
+
+	fix->smem_start = phys;
+	fix->smem_len = size;
+
+	fbi->screen_base = ion_map_kernel(mfd->iclient, mfd->ihandle);
+
+	/* Empty the buffer. */
+	if (fbi->screen_base)
+		memset(fbi->screen_base, 0x0, fix->smem_len);
+
+	mfd->var_xres = panel_info->xres;
+	mfd->var_yres = panel_info->yres;
+
+	/*
+	 * id field for fb app
+	 */
 	id = (int *)&mfd->panel;
 
 	switch (mdp_rev) {
@@ -693,26 +649,6 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 		return -ENOMEM;
 	}
 
-	if (mfd->fbram) {
-		fbram_offset = PAGE_ALIGN((int)mfd->fbram)- (int)mfd->fbram;
-		mfd->fbram += fbram_offset;
-		mfd->fbram_phys += fbram_offset;
-		mfd->fbram_size -= fbram_offset;
-	} else
-		fbram_offset = 0;
-
-	if ((!bf_supported || mfd->index == 0) && mfd->fbram)
-		if (mfd->fbram_size < fix->smem_len) {
-			pr_err("error: no more framebuffer memory!\n");
-			return -ENOMEM;
-		}
-
-	fbi->screen_base = mfd->fbram;
-	fbi->fix.smem_start = mfd->fbram_phys;
-
-	if ((!bf_supported || mfd->index == 0) && fbi->screen_base)
-		memset(fbi->screen_base, 0x0, fix->smem_len);
-
 	mfd->panel_power_on = false;
 
 	/* cursor memory allocation */
@@ -743,12 +679,6 @@ static int msm_fb_register(struct msm_fb_data_type *mfd)
 				mfd->cursor_buf,
 				*mfd->cursor_buf_phys);
 		return -EPERM;
-	}
-
-	if (mfd->fbram) {
-		mfd->fbram += fix->smem_len;
-		mfd->fbram_phys += fix->smem_len;
-		mfd->fbram_size -= fix->smem_len;
 	}
 
 	MSM_FB_INFO
@@ -1162,38 +1092,40 @@ static int msm_fb_set_par(struct fb_info *info)
 {
 	struct msm_fb_data_type *mfd = info->par;
 	struct fb_var_screeninfo *var = &info->var;
+	int bpp;
+
 	msm_fb_pan_idle(mfd);
+
 	switch (var->bits_per_pixel) {
 	case 16:
 		if (var->red.offset == 0)
 			mfd->fb_imgType = MDP_BGR_565;
 		else
 			mfd->fb_imgType = MDP_RGB_565;
+		bpp = 2;
 		break;
-
 	case 24:
-		if ((var->transp.offset == 0) && (var->transp.length == 0))
+		if ((var->transp.offset == 0) && (var->transp.length == 0)) {
 			mfd->fb_imgType = MDP_RGB_888;
-		else if ((var->transp.offset == 24) &&
+		} else if ((var->transp.offset == 24) &&
 				(var->transp.length == 8)) {
 			mfd->fb_imgType = MDP_ARGB_8888;
 			info->var.bits_per_pixel = 32;
 		}
+		bpp = 3;
 		break;
-
 	case 32:
 		if (var->transp.offset == 24)
 			mfd->fb_imgType = MDP_ARGB_8888;
 		else
 			mfd->fb_imgType = MDP_RGBA_8888;
+		bpp = 4;
 		break;
-
 	default:
 		return -EINVAL;
 	}
 
-	mfd->fbi->fix.line_length = msm_fb_line_length(mfd->index, var->xres,
-						       var->bits_per_pixel/8);
+	mfd->fbi->fix.line_length = var->xres * bpp;
 
 	return 0;
 }
@@ -1822,10 +1754,9 @@ struct msm_fb_data_type *msm_fb_alloc_device(struct device *dev)
 }
 
 int get_fb_phys_info(unsigned long *start, unsigned long *len, int fb_num,
-	int subsys_id)
+		     int subsys_id)
 {
 	struct fb_info *info;
-	struct msm_fb_data_type *mfd;
 
 	if (fb_num > MAX_FBI_LIST ||
 		(subsys_id != DISPLAY_SUBSYSTEM_ID &&
@@ -1840,20 +1771,7 @@ int get_fb_phys_info(unsigned long *start, unsigned long *len, int fb_num,
 		return -1;
 	}
 
-	mfd = info->par;
-
-	if (subsys_id == DISPLAY_SUBSYSTEM_ID) {
-		if (mfd->display_iova)
-			*start = mfd->display_iova;
-		else
-			*start = info->fix.smem_start;
-	} else {
-		if (mfd->rotator_iova)
-			*start = mfd->rotator_iova;
-		else
-			*start = info->fix.smem_start;
-	}
-
+	*start = info->fix.smem_start;
 	*len = info->fix.smem_len;
 
 	return 0;

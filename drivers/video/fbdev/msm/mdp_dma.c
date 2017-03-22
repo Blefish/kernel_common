@@ -56,11 +56,7 @@ void mdp_set_dma_pan_info(struct fb_info *info, struct mdp_dirty_region *dirty,
 
 	iBuf = &mfd->ibuf;
 
-	if (mfd->display_iova)
-		iBuf->buf = (uint8_t *)mfd->display_iova;
-	else
-		iBuf->buf = (uint8_t *) info->fix.smem_start;
-
+	iBuf->buf = (uint8_t *) info->fix.smem_start;
 	iBuf->buf += calc_fb_offset(mfd, fbi, bpp);
 
 	iBuf->ibuf_width = info->var.xres_virtual;

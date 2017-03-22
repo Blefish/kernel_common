@@ -77,8 +77,7 @@ struct msm_fb_data_type {
 	struct completion msmfb_update_notify;
 	struct completion msmfb_no_update_notify;
 	struct ion_client *iclient;
-	unsigned long display_iova;
-	unsigned long rotator_iova;
+	struct ion_handle *ihandle;
 	struct mdp_buf_type *ov0_wb_buf;
 	struct mdp_buf_type *ov1_wb_buf;
 	uint32_t mem_hid;
@@ -98,10 +97,6 @@ struct msm_fb_data_type {
 	u32 is_committing;
 	struct work_struct commit_work;
 	void *msm_fb_backup;
-
-	ion_phys_addr_t fbram_phys;
-	size_t fbram_size;
-	unsigned char *fbram;
 };
 
 struct msm_fb_backup_type {

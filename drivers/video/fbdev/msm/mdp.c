@@ -374,6 +374,8 @@ int mdp_panel_register(struct device *dev, struct msm_fb_data_type *mfd)
 	mfd->fb_size = mfd->panel_info.xres * mfd->panel_info.yres *
 		       (mfd->panel_info.bpp / 8) * MSM_FB_NUM;
 
+	mdp_clk_ctrl(1);
+
 	switch (mfd->panel.type) {
 	case MDDI_PANEL:
 		mfd->dma_fnc = mdp4_mddi_overlay;
@@ -395,11 +397,10 @@ int mdp_panel_register(struct device *dev, struct msm_fb_data_type *mfd)
 		goto mdp_probe_err;
 	}
 
-	if (mdp_rev >= MDP_REV_40) {
-		mdp_clk_ctrl(1);
+	if (mdp_rev >= MDP_REV_40)
 		data->display_intf = inpdw(MDP_BASE + 0x0038);
-		mdp_clk_ctrl(0);
-	}
+
+	mdp_clk_ctrl(0);
 
 	mfd->panel_info.frame_rate = mdp_get_panel_framerate(mfd);
 
@@ -477,12 +478,14 @@ static int mdp_clk_irq_init(struct platform_device *pdev,
 	pr_info("MDP core @%lu\n", clk_rate);
 
 	if (mdp_rev == MDP_REV_42) {
+		mdp_clk_ctrl(1);
 		/* DSI Video Timing generator disable */
 		outpdw(MDP_BASE + 0xE0000, 0x0);
 		/* Clear MDP Interrupt Enable register */
 		outpdw(MDP_BASE + 0x50, 0x0);
 		/* Set Overlay Proc 0 to reset state */
 		outpdw(MDP_BASE + 0x10004, 0x3);
+		mdp_clk_ctrl(0);
 	}
 	return 0;
 }

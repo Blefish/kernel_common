@@ -209,8 +209,6 @@ static int mddi_runtime_suspend(struct device *dev)
 	struct mddi_driver_data *data = dev_get_drvdata(dev);
 	dev_dbg(dev, "suspending\n");
 
-	mddi_auto_hibernation_enable(true);
-
 	mddi_clk_enable(data, false);
 
 	return 0;
@@ -222,8 +220,6 @@ static int mddi_runtime_resume(struct device *dev)
 	dev_dbg(dev, "resuming\n");
 
 	mddi_clk_enable(data, true);
-
-	mddi_auto_hibernation_enable(false);
 
 	return 0;
 }

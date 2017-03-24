@@ -978,7 +978,7 @@ static void mdp4_overlay_update_mddi(struct msm_fb_data_type *mfd)
 		mdp4_mddi_vsync_enable(mfd, pipe, 1);
 	}
 
-	if (mddi_use_dmap()) {
+	if (mdp_hw_revision == MDP4_REVISION_V2_1) {
 		data = inpdw(MDP_BASE + 0x0028);
 		data &= ~0x0300;	/* bit 8, 9, MASTER4 */
 		if (mfd->fbi->var.xres == 540) /* qHD, 540x960 */

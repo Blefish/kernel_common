@@ -248,11 +248,11 @@ static void mdp4_fetch_cfg(uint32_t core_clk)
 	int i;
 
 	if (mdp_rev >= MDP_REV_41 || core_clk >= 90000000) { /* 90 Mhz */
-		dmap_data = 0x47; /* 16 uint8_ts-burst x 8 req */
-		vg_data = 0x47; /* 16 uint8_ts-burs x 8 req */
+		dmap_data = 0x47; /* 16 bytes-burst x 8 req */
+		vg_data = 0x47; /* 16 bytes-burs x 8 req */
 	} else {
-		dmap_data = 0x27; /* 8 uint8_ts-burst x 8 req */
-		vg_data = 0x43; /* 16 uint8_ts-burst x 4 req */
+		dmap_data = 0x27; /* 8 bytes-burst x 8 req */
+		vg_data = 0x43; /* 16 bytes-burst x 4 req */
 	}
 
 	MSM_FB_DEBUG("%s: dmap=%x vg=%x\n", __func__, dmap_data, vg_data);

@@ -93,14 +93,8 @@ int mddi_panel_register(struct device *dev, struct msm_panel_info *pinfo)
 		return PTR_ERR(mfd);
 	}
 
-	if (!pm_runtime_status_suspended(dev))
-		mddi_clk_enable(data, false);
-
 	rate = clk_round_rate(data->core_clk, pinfo->clk_rate * 2);
 	clk_set_rate(data->core_clk, rate);
-
-	if (!pm_runtime_status_suspended(dev))
-		mddi_clk_enable(data, true);
 
 	if (!mddi_client_type)
 		mddi_client_type = pinfo->lcd.rev;
@@ -189,17 +183,17 @@ static int mddi_probe(struct platform_device *pdev)
 		return ret;
 	}
 
-	mddi_clk_enable(data, true);
-
-	mddi_init();
-
-	mddi_clk_enable(data, false);
-
 	platform_set_drvdata(pdev, data);
 	pm_runtime_enable(dev);
 
+	pm_runtime_get_sync(dev);
+
+	mddi_init();
+
 	/* Add our display panels. */
 	of_platform_populate(node, NULL, NULL, dev);
+
+	pm_runtime_put_sync(dev);
 
 	return 0;
 }

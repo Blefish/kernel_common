@@ -40,9 +40,9 @@ static const u8 acpuclk_translate_src[] = {
 static const char * const acpuclk_parents[] = {
 	"lpxo",
 	"pcom_ebi1_fixed_clk",
-	"pll1",
-	"pll2",
-	"pll3",
+	"pll1_vote",
+	"pll2_vote",
+	"pll3_vote",
 };
 
 struct axi_pair {

@@ -15,6 +15,30 @@
 	};
 };
 
+&cpu0_opp_table {
+	/delete-node/ opp@24576000;
+	/delete-node/ opp@61440000;
+
+	opp@460800000 {
+		opp-hz = /bits/ 64 <460800000>;
+		opp-microvolt = <950000>;
+		clock-latency-ns = <50000>;
+	};
+	opp@908800000 {
+		opp-hz = /bits/ 64 <908800000>;
+		opp-microvolt = <1125000>;
+		clock-latency-ns = <50000>;
+	};
+	opp@1024000000 {
+		opp-microvolt = <1175000>;
+	};
+	opp@1120000000 {
+		opp-hz = /bits/ 64 <1120000000>;
+		opp-microvolt = <1200000>;
+		clock-latency-ns = <50000>;
+	};
+};
+
 &i2c0 {
 	as3676@40 {
 		compatible = "ams,as3676";

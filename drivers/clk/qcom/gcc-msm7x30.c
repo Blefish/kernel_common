@@ -267,8 +267,11 @@ static struct clk_pll pll1 = {
  */
 static struct pll_freq_tbl pll2_freq_tbl[] = {
 	NSS_PLL_RATE( 806400000,  42, 0, 1, 0x00010581),
+	NSS_PLL_RATE( 908800000,  47, 1, 3, 0x00010581),
 	NSS_PLL_RATE(1024000000,  53, 1, 3, 0x00010581),
+	NSS_PLL_RATE(1120000000,  58, 1, 3, 0x00010581),
 	NSS_PLL_RATE(1200000000, 125, 0, 1, 0x00018581), /* Pre divided */
+	NSS_PLL_RATE(1312000000,  68, 1, 3, 0x00010581),
 	NSS_PLL_RATE(1401600000,  73, 0, 1, 0x00010581),
 };
 

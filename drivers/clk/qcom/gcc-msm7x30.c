@@ -438,8 +438,9 @@ static struct clk_branch glbl_root_clk = {
 		.enable_mask = BIT(29),
 		.hw.init = &(struct clk_init_data){
 			.name = "glbl_root_clk",
+			.parent_names = (const char *[]){ "glbl_root_src" },
+			.num_parents = 1,
 			.ops = &clk_branch_ops,
-			.flags = CLK_IS_ROOT,
 		},
 	},
 };
@@ -3481,17 +3482,18 @@ static int gcc_msm7x30_clock_init(struct regmap *regmap)
 
 static int gcc_msm7x30_probe(struct platform_device *pdev)
 {
-	struct device *dev = &pdev->dev;
-	struct device_node *node = pdev->dev.of_node;
-	struct gcc_msm7x30_data *data;
-	struct regmap *regmap_base;
-	struct regmap *regmap_sh2;
-	struct reset_controller_dev *rcdev;
 	int ret;
+	struct device *dev = &pdev->dev;
+	struct device_node *node = dev->of_node;
+	struct gcc_msm7x30_data *data;
+	struct reset_controller_dev *rcdev;
 
 	struct resource *res;
+	struct regmap *regmap_base;
+	struct regmap *regmap_sh2;
 	void __iomem *base;
 	int i;
+	struct clk *c;
 
 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
 	if (!data)
@@ -3499,13 +3501,12 @@ static int gcc_msm7x30_probe(struct platform_device *pdev)
 
 	data->dev = dev;
 	data->onecell.clks = devm_kcalloc(dev,
-				ARRAY_SIZE(gcc_msm7x30_clks),
-				sizeof(*data->onecell.clks),
-				GFP_KERNEL);
-	if (!data->onecell.clks) {
-		pr_err("%s: failed to allocate memory for onecell\n", __func__);
-		return -1;
-	}
+					  ARRAY_SIZE(gcc_msm7x30_clks),
+					  sizeof(*data->onecell.clks),
+					  GFP_KERNEL);
+	if (!data->onecell.clks)
+		return -ENOMEM;
+
 	data->onecell.clk_num = ARRAY_SIZE(gcc_msm7x30_clks);
 
 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
@@ -3531,12 +3532,17 @@ static int gcc_msm7x30_probe(struct platform_device *pdev)
 
 	gcc_msm7x30_clock_init(regmap_sh2);
 
+	/* Should move to DT node? */
+	c = clk_register_fixed_rate(dev, "glbl_root_src", NULL,
+				    CLK_IS_ROOT, 96000000);
+	if (IS_ERR(c))
+		return PTR_ERR(c);
+
 	for (i = 0; i < ARRAY_SIZE(gcc_msm7x30_clks); i++) {
 		const struct msm7x30_clk *clk = &gcc_msm7x30_clks[i];
 		bool local;
 
-		struct clk_hw *hw = NULL;
-		struct clk *c;
+		struct clk_hw *hw;
 
 		if (!clk->local && !clk->remote) {
 			dev_err(dev, "invalid clock data for %d\n", i);

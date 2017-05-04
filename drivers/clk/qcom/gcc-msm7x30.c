@@ -373,6 +373,7 @@ static struct clk_regmap pll1_vote = {
 		.parent_names = (const char *[]){ "pll1" },
 		.num_parents = 1,
 		.ops = &clk_pll_vote_ops,
+		.flags = CLK_SET_RATE_PARENT,
 	},
 };
 
@@ -384,6 +385,7 @@ static struct clk_regmap pll2_vote = {
 		.parent_names = (const char *[]){ "pll2" },
 		.num_parents = 1,
 		.ops = &clk_pll_vote_ops,
+		.flags = CLK_SET_RATE_PARENT,
 	},
 };
 
@@ -395,6 +397,7 @@ static struct clk_regmap pll3_vote = {
 		.parent_names = (const char *[]){ "pll3" },
 		.num_parents = 1,
 		.ops = &clk_pll_vote_ops,
+		.flags = CLK_SET_RATE_PARENT,
 	},
 };
 
@@ -406,6 +409,7 @@ static struct clk_regmap pll4_vote = {
 		.parent_names = (const char *[]){ "pll4" },
 		.num_parents = 1,
 		.ops = &clk_pll_vote_ops,
+		.flags = CLK_SET_RATE_PARENT,
 	},
 };
 
@@ -417,6 +421,7 @@ static struct clk_regmap pll5_vote = {
 		.parent_names = (const char *[]){ "pll5" },
 		.num_parents = 1,
 		.ops = &clk_pll_vote_ops,
+		.flags = CLK_SET_RATE_PARENT,
 	},
 };
 
@@ -428,6 +433,7 @@ static struct clk_regmap pll6_vote = {
 		.parent_names = (const char *[]){ "pll6" },
 		.num_parents = 1,
 		.ops = &clk_pll_vote_ops,
+		.flags = CLK_SET_RATE_PARENT,
 	},
 };
 

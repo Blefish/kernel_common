@@ -370,6 +370,8 @@ static int acpuclk_msm7x30_probe(struct platform_device *pdev)
 	if (IS_ERR(clk))
 		return PTR_ERR(clk);
 
+	clk_prepare_enable(clk);
+
 	acpuclk->clk_nb.notifier_call = acpuclk_msm7x30_notifier_cb;
 	clk_notifier_register(clk, &acpuclk->clk_nb);
 

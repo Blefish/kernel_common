@@ -252,9 +252,9 @@ static int msm_irq_set_type(struct irq_data *d, unsigned int flow_type)
 	return 0;
 }
 
-static inline void msm_vic_handle_irq(struct vic_device *vic,
-				      struct pt_regs *regs)
+static void __exception_irq_entry vic_handle_irq(struct pt_regs *regs)
 {
+	struct vic_device *vic = &vic_data;
 	u32 irqnr;
 
 	do {
@@ -268,15 +268,6 @@ static inline void msm_vic_handle_irq(struct vic_device *vic,
 			break;
 		handle_domain_irq(vic->domain, irqnr, regs);
 	} while (1);
-}
-
-/* enable imprecise aborts */
-#define local_cpsie_enable() __asm__ __volatile__("cpsie a    @ enable")
-
-static asmlinkage void __exception_irq_entry vic_handle_irq(struct pt_regs *regs)
-{
-	local_cpsie_enable();
-	msm_vic_handle_irq(&vic_data, regs);
 }
 
 static struct irq_chip msm_irq_chip = {

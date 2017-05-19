@@ -12,6 +12,7 @@
  *
  */
 
+#include <linux/cpuidle.h>
 #include <linux/delay.h>
 #include <linux/init.h>
 #include <linux/io.h>
@@ -24,6 +25,9 @@
 #include <linux/regulator/driver.h>
 #include <linux/regulator/machine.h>
 #include <linux/regulator/of_regulator.h>
+
+#include <asm/cpuidle.h>
+#include <asm/suspend.h>
 
 #include <soc/qcom/spm_v1.h>
 
@@ -128,9 +132,16 @@ struct spm_driver_data {
 	unsigned int low_power_mode;
 	bool notify_rpm;
 	bool dirty;
+
+	uint32_t *rst_vector;
+	uint32_t saved_vector[2];
 };
 
 static DEFINE_PER_CPU(struct spm_driver_data *, cpu_spm_drv);
+
+typedef int (*idle_fn)(int);
+static DEFINE_PER_CPU(idle_fn*, qcom_idle_ops);
+
 /******************************************************************************
  * Internal helper functions
  *****************************************************************************/
@@ -306,6 +317,128 @@ void msm_spm_reinit(void)
 	mb();
 }
 
+static int qcom_pm_collapse(unsigned long int unused)
+{
+	/*
+	 * WFI triggers CPU suspend when SPM is configured for SPC.
+	 */
+	cpu_do_idle();
+
+	/*
+	 * Returns here only if there was a pending interrupt and we did not
+	 * power down as a result.
+	 */
+	return -1;
+}
+
+static void msm_pm_config_rst_vector_before_pc(struct spm_driver_data *drv,
+		unsigned long entry)
+{
+	drv->saved_vector[0] = drv->rst_vector[0];
+	drv->saved_vector[1] = drv->rst_vector[1];
+	drv->rst_vector[0] = 0xE51FF004;	/* ldr pc, [rc, #-4] */
+	drv->rst_vector[1] = entry;		/* pc jump phy address */
+}
+
+static void msm_pm_config_rst_vector_after_pc(struct spm_driver_data *drv)
+{
+	drv->rst_vector[0] = drv->saved_vector[0];
+	drv->rst_vector[1] = drv->saved_vector[1];
+}
+
+static int qcom_cpu_spc(int cpu)
+{
+	int ret;
+	struct spm_driver_data *drv = per_cpu(cpu_spm_drv, cpu);
+
+	msm_spm_set_low_power_mode(MSM_SPM_MODE_POWER_COLLAPSE, false);
+	msm_pm_config_rst_vector_before_pc(drv, virt_to_phys(cpu_resume_arm));
+
+	ret = cpu_suspend(0, qcom_pm_collapse);
+
+	/*
+	 * ARM common code executes WFI without calling into our driver and
+	 * if the SPM mode is not reset, then we may accidentaly power down the
+	 * cpu when we intended only to gate the cpu clock.
+	 * Ensure the state is set to standby before returning.
+	 */
+
+	msm_pm_config_rst_vector_after_pc(drv);
+	msm_spm_set_low_power_mode(MSM_SPM_MODE_CLOCK_GATING, false);
+
+	return ret;
+}
+
+static int qcom_idle_enter(int cpu, unsigned long index)
+{
+	return per_cpu(qcom_idle_ops, cpu)[index](cpu);
+}
+
+static const struct of_device_id qcom_idle_state_match[] __initconst = {
+	{ .compatible = "qcom,idle-state-spc", .data = qcom_cpu_spc },
+	{ },
+};
+
+static int __init qcom_cpuidle_init(struct device_node *cpu_node, int cpu)
+{
+	const struct of_device_id *match_id;
+	struct device_node *state_node;
+	int i;
+	int state_count = 1;
+	idle_fn idle_fns[CPUIDLE_STATE_MAX];
+	idle_fn *fns;
+
+	for (i = 0; ; i++) {
+		state_node = of_parse_phandle(cpu_node, "cpu-idle-states", i);
+		if (!state_node)
+			break;
+
+		if (!of_device_is_available(state_node))
+			continue;
+
+		if (i == CPUIDLE_STATE_MAX) {
+			pr_warn("%s: cpuidle states reached max possible\n",
+					__func__);
+			break;
+		}
+
+		match_id = of_match_node(qcom_idle_state_match, state_node);
+		if (!match_id)
+			return -ENODEV;
+
+		idle_fns[state_count] = match_id->data;
+		state_count++;
+	}
+
+	if (state_count == 1)
+		goto check_spm;
+
+	fns = devm_kcalloc(get_cpu_device(cpu), state_count, sizeof(*fns),
+			GFP_KERNEL);
+	if (!fns)
+		return -ENOMEM;
+
+	for (i = 1; i < state_count; i++)
+		fns[i] = idle_fns[i];
+
+	per_cpu(qcom_idle_ops, cpu) = fns;
+
+	/*
+	 * SPM probe for the cpu should have happened by now, if the
+	 * SPM device does not exist, return -ENXIO to indicate that the
+	 * cpu does not support idle states.
+	 */
+check_spm:
+	return per_cpu(cpu_spm_drv, cpu) ? 0 : -ENXIO;
+}
+
+static struct cpuidle_ops qcom_cpuidle_ops __initdata = {
+	.suspend = qcom_idle_enter,
+	.init = qcom_cpuidle_init,
+};
+
+CPUIDLE_METHOD_OF_DECLARE(qcom_idle_v1, "qcom,scss", &qcom_cpuidle_ops);
+
 static int spm_vreg_get_voltage(struct regulator_dev *rdev)
 {
 	struct spm_driver_data *drv = rdev_get_drvdata(rdev);
@@ -372,6 +505,8 @@ static int spm_dev_probe(struct platform_device *pdev)
 	int cpu;
 	int i;
 
+	uint32_t rst_phys = 0;
+
 	struct regulator_init_data *initdata;
 	struct regulator_config config = { };
 	struct regulator_dev *rdev;
@@ -384,6 +519,10 @@ static int spm_dev_probe(struct platform_device *pdev)
 	drv->reg_base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(drv->reg_base))
 		return PTR_ERR(drv->reg_base);
+
+	of_property_read_u32(pdev->dev.of_node, "reset-vector", &rst_phys);
+	if (rst_phys)
+		drv->rst_vector = phys_to_virt(rst_phys);
 
 	match_id = of_match_node(spm_match_table, pdev->dev.of_node);
 	if (!match_id)

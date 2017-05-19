@@ -282,6 +282,9 @@ int msm_spm_set_vdd(struct spm_driver_data *drv, unsigned int vlevel)
 	pr_debug("%s: cpu done, remaining timeout %uus\n",
 		 __func__, timeout_us);
 
+	/* Wait for voltage to stabilize. */
+	udelay(62);
+
 	return 0;
 
 set_vdd_bail:

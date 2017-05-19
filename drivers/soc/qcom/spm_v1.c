@@ -65,7 +65,7 @@ enum spm_reg {
 
 struct msm_spm_platform_data {
 	void __iomem *reg_base_addr;
-	uint32_t reg_data[MSM_SPM_REG_NR_INITIALIZE];
+	uint32_t reg_data[MSM_SPM_REG_NR];
 
 	uint8_t awake_vlevel;
 	uint8_t retention_vlevel;
@@ -336,7 +336,7 @@ static struct spm_driver_data *spm_get_drv(struct platform_device *pdev,
 	struct spm_driver_data *drv = NULL;
 	struct device_node *cpu_node, *saw_node;
 	int cpu;
-	bool found;
+	bool found = false;
 
 	for_each_possible_cpu(cpu) {
 		cpu_node = of_cpu_device_node_get(cpu);

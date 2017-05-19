@@ -246,6 +246,30 @@ ENDPROC(cpu_pj4b_do_resume)
 
 #endif
 
+#ifdef CONFIG_ARM_CPU_SUSPEND
+ENTRY(cpu_scorpion_do_suspend)
+	stmfd	sp!, {r4 - r11, lr}
+	bl	cpu_v7_do_suspend
+	bl	v7_flush_dcache_all
+	ldmfd	sp!, {r4 - r11, pc}
+ENDPROC(cpu_scorpion_do_suspend)
+#endif
+
+/*
+ * Qualcomm Inc. Scorpion
+ */
+	globl_equ	cpu_scorpion_proc_init,		cpu_v7_proc_init
+	globl_equ	cpu_scorpion_proc_fin,		cpu_v7_proc_fin
+	globl_equ	cpu_scorpion_reset,		cpu_v7_reset
+	globl_equ	cpu_scorpion_do_idle,		cpu_v7_do_idle
+	globl_equ	cpu_scorpion_dcache_clean_area,	cpu_v7_dcache_clean_area
+	globl_equ	cpu_scorpion_switch_mm,		cpu_v7_switch_mm
+	globl_equ	cpu_scorpion_set_pte_ext,	cpu_v7_set_pte_ext
+	globl_equ	cpu_scorpion_suspend_size,	cpu_v7_suspend_size
+#ifdef CONFIG_ARM_CPU_SUSPEND
+	globl_equ	cpu_scorpion_do_resume,	cpu_v7_do_resume
+#endif
+
 /*
  *	__v7_setup
  *
@@ -497,6 +521,7 @@ __v7_setup_stack:
 #ifdef CONFIG_CPU_PJ4B
 	define_processor_functions pj4b, dabort=v7_early_abort, pabort=v7_pabort, suspend=1
 #endif
+	define_processor_functions scorpion, dabort=v7_early_abort, pabort=v7_pabort, suspend=1
 
 	.section ".rodata"
 
@@ -632,6 +657,16 @@ __v7_ca17mp_proc_info:
 	.long	0xff0ffff0
 	__v7_proc __v7_ca17mp_proc_info, __v7_ca17mp_setup
 	.size	__v7_ca17mp_proc_info, . - __v7_ca17mp_proc_info
+
+	/*
+	 * Qualcomm Inc. Scorpion processors.
+	 */
+	.type	__scorpion_proc_info, #object
+__scorpion_proc_info:
+	.long	0x510f00f0		@ Required ID value
+	.long	0xff0f00f0		@ Mask for ID
+	__v7_proc __scorpion_proc_info, __v7_setup, proc_fns = scorpion_processor_functions
+	.size	__scorpion_proc_info, . - __scorpion_proc_info
 
 	/*
 	 * Qualcomm Inc. Krait processors.

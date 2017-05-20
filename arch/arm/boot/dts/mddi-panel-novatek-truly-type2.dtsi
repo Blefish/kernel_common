@@ -1,0 +1,25 @@
+&mdp_mddi {
+	nt-truly-type2 {
+		compatible = "novatek,mddi-panel";
+
+		clock-frequency	= <192000000>;
+		/*
+		 * Power control is currently disabled.
+		 */
+		/*gpio-reset	= <&tlmm 180 0>;*/
+		panel-turnon	= <0x1100 0x0000	/* EXIT_SLEEP_MODE */
+				   0x0000    120>;	/* sleep_ms(120) */
+		panel-turnoff	= <0x1000 0x0000	/* ENTER_SLEEP_MODE */
+				   0x0000    120>;	/* sleep_ms(120) */
+
+		panel-bpp	= <24>;
+		panel-refx100	= <6000>;
+		panel-rev	= <2>;
+		panel-vpulse	= <22>;
+		panel-xres	= <480>;
+		panel-yres	= <854>;
+
+		vdd-supply	= <&ldo16>;
+		vio-supply	= <&ldo12>;
+	};
+};

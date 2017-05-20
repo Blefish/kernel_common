@@ -1,0 +1,27 @@
+&mdp_mddi {
+	nt-truly-type1 {
+		compatible = "novatek,mddi-panel";
+
+		clock-frequency	= <192000000>;
+
+		panel-init	= <0xB101 0x01		/* Display Waveform Cycle setting */
+				   0xB102 0x82
+				   0xB107 0x5A
+				   0x4400 0x00		/* SET_TEAR_SCANLINE */
+				   0x4401 0xC8>;
+		panel-turnon	= <0x1100 0x0000	/* EXIT_SLEEP_MODE */
+				   0x0000    125>;	/* sleep_ms(125) */
+		panel-turnoff	= <0x1000 0x0000	/* ENTER_SLEEP_MODE */
+				   0x0000     10>;	/* sleep_ms(10) */
+
+		panel-bpp	= <16>;
+		panel-refx100	= <5400>;
+		panel-rev	= <1>;
+		panel-vback	= <6>;
+		panel-xres	= <480>;
+		panel-yres	= <800>;
+
+		vdd-supply	= <&ldo16>;
+		vio-supply	= <&ldo12>;
+	};
+};

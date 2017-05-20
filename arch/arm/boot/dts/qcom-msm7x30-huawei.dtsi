@@ -43,6 +43,14 @@
 	regulator-always-on;
 };
 
+&ldo12 {
+	regulator-always-on;
+};
+
+&ldo16 {
+	regulator-always-on;
+};
+
 &ldo20 {
 	regulator-min-microvolt = <1800000>;
 	regulator-always-on;

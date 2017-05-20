@@ -15,24 +15,11 @@
 	};
 };
 
+#include "mddi-panel-novatek-truly-type2.dtsi"
+
 &i2c0 {
 	synaptics-rmi4@70 {
 		synaptics,panel-coords = <480 958>;
 		synaptics,display-coords = <480 854>;
-	};
-};
-
-&mdp_mddi {
-	nt35560 {
-		compatible	= "qcom,mddi-panel";
-		clock-frequency	= <192000000>;
-		panel-on	= <0x1100 0 0x0 15>;
-		panel-off	= <0x1000 0>;
-		panel-bpp	= <24>;
-		panel-refx100	= <6000>;
-		panel-rev	= <2>;
-		panel-vpulse	= <22>;
-		panel-xres	= <480>;
-		panel-yres	= <854>;
 	};
 };

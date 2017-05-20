@@ -193,7 +193,7 @@ static int mddi_probe(struct platform_device *pdev)
 	/* Add our display panels. */
 	of_platform_populate(node, NULL, NULL, dev);
 
-	pm_runtime_put_sync(dev);
+	pm_runtime_put(dev);
 
 	return 0;
 }
@@ -213,14 +213,15 @@ static int mddi_runtime_resume(struct device *dev)
 	struct mddi_driver_data *data = dev_get_drvdata(dev);
 	dev_dbg(dev, "resuming\n");
 
+	mddi_host_client_cnt_reset();
+
 	mddi_clk_enable(data, true);
 
 	return 0;
 }
 
 static struct dev_pm_ops mddi_dev_pm_ops = {
-	.runtime_suspend = mddi_runtime_suspend,
-	.runtime_resume = mddi_runtime_resume,
+	SET_RUNTIME_PM_OPS(mddi_runtime_suspend, mddi_runtime_resume, NULL)
 };
 
 static const struct of_device_id mddi_match_table[] = {

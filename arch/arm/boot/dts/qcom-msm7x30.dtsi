@@ -501,6 +501,7 @@
 					debounce = <15>;
 					scan-delay = <32>;
 					row-hold = <91500>;
+					wakeup-source;
 				};
 
 				pwm@88 {

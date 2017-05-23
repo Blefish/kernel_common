@@ -21,8 +21,6 @@
 #include <linux/irqdomain.h>
 #include <linux/of_address.h>
 
-#define SMSM_FAKE_IRQ (0xff)
-
 #define VIC_REG(off) (vic_data.base + (off))
 #define VIC_INT_TO_REG_ADDR(base, irq) (base + (irq / 32) * 4)
 #define VIC_INT_TO_REG_INDEX(irq) ((irq >> 5) & 3)
@@ -96,20 +94,9 @@
 
 #define VIC_NUM_REGS		4
 
-static uint32_t msm_irq_smsm_wake_enable[2];
-static struct {
-	uint32_t int_en[2];
-	uint32_t int_type;
-	uint32_t int_polarity;
-	uint32_t int_select;
-} msm_irq_shadow_reg[VIC_NUM_REGS];
-
-static uint32_t msm_irq_idle_disable[VIC_NUM_REGS];
-
 struct vic_device {
 	void __iomem *base;
 	struct irq_domain *domain;
-	uint8_t *smsm_irq_map;
 };
 static struct vic_device vic_data;
 
@@ -124,99 +111,31 @@ static inline void msm_irq_write_all_regs(void __iomem *base, unsigned int val)
 static void msm_irq_ack(struct irq_data *d)
 {
 	irq_hw_number_t hwirq = irqd_to_hwirq(d);
-	uint32_t mask;
-
 	void __iomem *reg = VIC_INT_TO_REG_ADDR(VIC_INT_CLEAR0, hwirq);
-	mask = 1 << (hwirq & 31);
+	uint32_t mask = 1UL << (hwirq & 31);
+
 	writel(mask, reg);
 	mb();
-}
-
-static void msm_irq_disable(struct irq_data *d)
-{
-	irq_hw_number_t hwirq = irqd_to_hwirq(d);
-	void __iomem *reg = VIC_INT_TO_REG_ADDR(VIC_INT_ENCLEAR0, hwirq);
-	unsigned index = VIC_INT_TO_REG_INDEX(hwirq);
-	uint32_t mask = 1UL << (hwirq & 31);
-	int smsm_irq = vic_data.smsm_irq_map[hwirq];
-
-	if (!(msm_irq_shadow_reg[index].int_en[1] & mask)) {
-		msm_irq_shadow_reg[index].int_en[0] &= ~mask;
-		writel(mask, reg);
-		mb();
-		if (smsm_irq == 0)
-			msm_irq_idle_disable[index] &= ~mask;
-		else {
-			mask = 1UL << (smsm_irq - 1);
-			msm_irq_smsm_wake_enable[0] &= ~mask;
-		}
-	}
 }
 
 static void msm_irq_mask(struct irq_data *d)
 {
 	irq_hw_number_t hwirq = irqd_to_hwirq(d);
 	void __iomem *reg = VIC_INT_TO_REG_ADDR(VIC_INT_ENCLEAR0, hwirq);
-	unsigned index = VIC_INT_TO_REG_INDEX(hwirq);
 	uint32_t mask = 1UL << (hwirq & 31);
-	int smsm_irq = vic_data.smsm_irq_map[hwirq];
 
-	msm_irq_shadow_reg[index].int_en[0] &= ~mask;
 	writel(mask, reg);
 	mb();
-	if (smsm_irq == 0)
-		msm_irq_idle_disable[index] &= ~mask;
-	else {
-		mask = 1UL << (smsm_irq - 1);
-		msm_irq_smsm_wake_enable[0] &= ~mask;
-	}
 }
 
 static void msm_irq_unmask(struct irq_data *d)
 {
 	irq_hw_number_t hwirq = irqd_to_hwirq(d);
 	void __iomem *reg = VIC_INT_TO_REG_ADDR(VIC_INT_ENSET0, hwirq);
-	unsigned index = VIC_INT_TO_REG_INDEX(hwirq);
 	uint32_t mask = 1UL << (hwirq & 31);
-	int smsm_irq = vic_data.smsm_irq_map[hwirq];
 
-	msm_irq_shadow_reg[index].int_en[0] |= mask;
 	writel(mask, reg);
 	mb();
-
-	if (smsm_irq == 0)
-		msm_irq_idle_disable[index] |= mask;
-	else {
-		mask = 1UL << (smsm_irq - 1);
-		msm_irq_smsm_wake_enable[0] |= mask;
-	}
-}
-
-static int msm_irq_set_wake(struct irq_data *d, unsigned int on)
-{
-	irq_hw_number_t hwirq = irqd_to_hwirq(d);
-	unsigned index = VIC_INT_TO_REG_INDEX(hwirq);
-	uint32_t mask = 1UL << (hwirq & 31);
-	int smsm_irq = vic_data.smsm_irq_map[hwirq];
-
-	if (smsm_irq == 0) {
-		pr_err("%s: bad wakeup irq %lu\n", __func__, hwirq);
-		return -EINVAL;
-	}
-	if (on)
-		msm_irq_shadow_reg[index].int_en[1] |= mask;
-	else
-		msm_irq_shadow_reg[index].int_en[1] &= ~mask;
-
-	if (smsm_irq == SMSM_FAKE_IRQ)
-		return 0;
-
-	mask = 1UL << (smsm_irq - 1);
-	if (on)
-		msm_irq_smsm_wake_enable[1] |= mask;
-	else
-		msm_irq_smsm_wake_enable[1] &= ~mask;
-	return 0;
 }
 
 static int msm_irq_set_type(struct irq_data *d, unsigned int flow_type)
@@ -224,31 +143,28 @@ static int msm_irq_set_type(struct irq_data *d, unsigned int flow_type)
 	irq_hw_number_t hwirq = irqd_to_hwirq(d);
 	void __iomem *treg = VIC_INT_TO_REG_ADDR(VIC_INT_TYPE0, hwirq);
 	void __iomem *preg = VIC_INT_TO_REG_ADDR(VIC_INT_POLARITY0, hwirq);
-	unsigned index = VIC_INT_TO_REG_INDEX(hwirq);
-	int b = 1 << (hwirq & 31);
-	uint32_t polarity;
-	uint32_t type;
+	uint32_t mask = 1UL << (hwirq & 31);
 
-	polarity = msm_irq_shadow_reg[index].int_polarity;
+	uint32_t polarity = readl(preg);
+	uint32_t type = readl(treg);
+
 	if (flow_type & (IRQF_TRIGGER_FALLING | IRQF_TRIGGER_LOW))
-		polarity |= b;
+		polarity |= mask;
 	if (flow_type & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_HIGH))
-		polarity &= ~b;
-	writel(polarity, preg);
-	msm_irq_shadow_reg[index].int_polarity = polarity;
+		polarity &= ~mask;
 
-	type = msm_irq_shadow_reg[index].int_type;
 	if (flow_type & (IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING)) {
-		type |= b;
+		type |= mask;
 		irq_set_handler_locked(d, handle_edge_irq);
 	}
 	if (flow_type & (IRQF_TRIGGER_HIGH | IRQF_TRIGGER_LOW)) {
-		type &= ~b;
+		type &= ~mask;
 		irq_set_handler_locked(d, handle_level_irq);
 	}
+
+	writel(polarity, preg);
 	writel(type, treg);
 	mb();
-	msm_irq_shadow_reg[index].int_type = type;
 	return 0;
 }
 
@@ -272,12 +188,12 @@ static void __exception_irq_entry vic_handle_irq(struct pt_regs *regs)
 
 static struct irq_chip msm_irq_chip = {
 	.name		= "msm-vic",
-	.irq_disable	= msm_irq_disable,
 	.irq_ack	= msm_irq_ack,
 	.irq_mask	= msm_irq_mask,
 	.irq_unmask	= msm_irq_unmask,
-	.irq_set_wake	= msm_irq_set_wake,
 	.irq_set_type	= msm_irq_set_type,
+	.flags		= IRQCHIP_SKIP_SET_WAKE |
+			  IRQCHIP_MASK_ON_SUSPEND,
 };
 
 static int msm_vic_irqdomain_map(struct irq_domain *d, unsigned int irq,
@@ -298,13 +214,11 @@ static const struct irq_domain_ops msm_vic_irqdomain_ops = {
 };
 
 static int __init msm_init_irq(struct device_node *node,
-	struct device_node *parent)
+			       struct device_node *parent)
 {
 	int ret;
 	void __iomem *regs;
 	uint32_t num_irqs;
-	int i;
-	size_t array_size;
 
 	regs = of_iomap(node, 0);
 	if (WARN_ON(!regs))
@@ -315,23 +229,6 @@ static int __init msm_init_irq(struct device_node *node,
 	if (ret) {
 		pr_err("%s: failed to read num-irqs ret=%d\n", __func__, ret);
 		return ret;
-	}
-
-	array_size = of_property_count_elems_of_size(node, "smsm-irqs",
-						     sizeof(u32));
-	if (array_size == 0 || array_size % 2) {
-		pr_err("%s: invalid number of 'smsm-irqs': %d\n",
-		       __func__, array_size);
-	}
-
-	vic_data.smsm_irq_map = kcalloc(num_irqs,
-					sizeof(*vic_data.smsm_irq_map),
-					GFP_KERNEL);
-	for (i = 0; i < array_size; i += 2) {
-		u32 prop, value;
-		of_property_read_u32_index(node, "smsm-irqs", i, &prop);
-		of_property_read_u32_index(node, "smsm-irqs", i+1, &value);
-		vic_data.smsm_irq_map[prop] = value;
 	}
 
 	/* select level interrupts */
@@ -360,7 +257,7 @@ static int __init msm_init_irq(struct device_node *node,
 	set_handle_irq(vic_handle_irq);
 
 	/* enable interrupt controller */
-	writel(3, VIC_INT_MASTEREN);
+	writel(1, VIC_INT_MASTEREN);
 	mb();
 
 	return 0;

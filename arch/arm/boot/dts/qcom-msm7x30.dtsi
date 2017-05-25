@@ -81,6 +81,7 @@
 			opp-hz = /bits/ 64 <192000000>;
 			opp-microvolt = <900000>;
 			clock-latency-ns = <50000>;
+			opp-suspend;
 		};
 		opp@245760000 {
 			opp-hz = /bits/ 64 <245760000>;

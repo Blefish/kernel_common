@@ -103,7 +103,7 @@
 };
 
 &pm8058_gpio {
-	pm8058_keypad_gpios: pm8058_keypad_gpios {
+	pm8058_keypad_pins: pm8058_keypad_pins {
 		kypd_sns {
 			pins = "gpio1", "gpio2", "gpio3", "gpio4", "gpio5";
 			function = "normal";
@@ -126,7 +126,7 @@
 		};
 	};
 
-	pm8058_sdc4_gpios: pm8058_sdc4_gpios {
+	pm8058_sdc4_pins: pm8058_sdc4_pins {
 		sd_det {
 			pins = "gpio22";
 			bias-pull-none;
@@ -136,7 +136,7 @@
 };
 
 &tlmm {
-	sdc4_gpios: sdc4_gpios {
+	sdc4_pins: sdc4_pins {
 		sdc4_clk {
 			pins = "gpio58";
 			drive-strength = <8>;
@@ -148,17 +148,15 @@
 		};
 	};
 
-	sdc4_sleep_gpios: sdc4_sleep_gpios {
+	sdc4_sleep_pins: sdc4_sleep_pins {
 		sdc4_clk {
 			pins = "gpio58";
-			function = "peripheral";
 			bias-pull-down;
 			drive-strength = <2>;
 		};
 
 		sdc4_clkdat {
 			pins = "gpio59", "gpio60", "gpio61", "gpio62", "gpio63";
-			function = "peripheral";
 			bias-pull-down;
 			drive-strength = <2>;
 		};
@@ -172,6 +170,6 @@
 	cd-inverted;
 
 	pinctrl-names	= "default", "sleep";
-	pinctrl-1	= <&sdc4_sleep_gpios>,
-			  <&pm8058_sdc4_gpios>;
+	pinctrl-1	= <&sdc4_sleep_pins>,
+			  <&pm8058_sdc4_pins>;
 };

@@ -524,8 +524,43 @@ DECLARE_MSM_GPIO_PIN(181);
 
 enum msm7x30_functions {
 	MSM_MUX_gpio,
-	MSM_MUX_peripheral,
-	MSM_MUX_peripheral2,
+	MSM_MUX_uicc,
+	MSM_MUX_uart1dm,
+	MSM_MUX_uart2dm,
+	MSM_MUX_uart1,
+	MSM_MUX_uart2,
+	MSM_MUX_uart3,
+	MSM_MUX_uim1,
+	MSM_MUX_uim2,
+	MSM_MUX_sdc1,
+	MSM_MUX_sdc2,
+	MSM_MUX_sdc3,
+	MSM_MUX_sdc4,
+	MSM_MUX_tsif,
+	MSM_MUX_auxpcm,
+	MSM_MUX_i2s,
+	MSM_MUX_qupi2c,
+	MSM_MUX_msmi2c,
+	MSM_MUX_spi,
+	MSM_MUX_wc,
+	MSM_MUX_ebi2,
+	MSM_MUX_etm,
+	MSM_MUX_reset,
+	MSM_MUX_clock,
+	MSM_MUX_jtag,
+	MSM_MUX_mm,
+	MSM_MUX_mdp,
+	MSM_MUX_hdmi,
+	MSM_MUX_lcdc,
+	MSM_MUX_mi2s,
+	MSM_MUX_gnss,
+	MSM_MUX_pa,
+	MSM_MUX_gsm_pa,
+	MSM_MUX_ant,
+	MSM_MUX_ssbi,
+	MSM_MUX_pm,
+	MSM_MUX_grfc,
+
 	MSM_MUX__,
 };
 
@@ -560,115 +595,289 @@ static const char * const gpio_groups[] = {
 	"gpio177", "gpio178", "gpio179", "gpio180", "gpio181"
 };
 
-static const char * const peripheral_groups[] = {
-	"gpio2", "gpio3", "gpio4", "gpio5", "gpio6", "gpio7",
-	"gpio8", "gpio9", "gpio10", "gpio11", "gpio12", "gpio13",
-	"gpio14", "gpio15", "gpio19", "gpio20", "gpio21", "gpio22",
-	"gpio23", "gpio24", "gpio25", "gpio27", "gpio30", "gpio34", "gpio35",
-	"gpio36", "gpio37", "gpio38", "gpio39", "gpio40", "gpio41",
-	"gpio42", "gpio43", "gpio45", "gpio46", "gpio47", "gpio48",
-	"gpio58", "gpio59", "gpio60", "gpio61", "gpio62", "gpio63",
-	"gpio64", "gpio65", "gpio66", "gpio67", "gpio68", "gpio69",
-	"gpio70", "gpio71", "gpio86", "gpio90", "gpio91", "gpio92",
-	"gpio93", "gpio94", "gpio95", "gpio96", "gpio97", "gpio98",
-	"gpio99", "gpio100", "gpio101", "gpio102", "gpio103", "gpio104",
-	"gpio105", "gpio106", "gpio107", "gpio108", "gpio109", "gpio110",
-	"gpio111", "gpio112", "gpio113", "gpio114", "gpio115", "gpio116",
-	"gpio117", "gpio118", "gpio119", "gpio120", "gpio121", "gpio122",
-	"gpio123", "gpio124", "gpio125", "gpio126", "gpio127", "gpio128",
-	"gpio129", "gpio130", "gpio131", "gpio132", "gpio134", "gpio135",
-	"gpio136", "gpio137", "gpio138", "gpio139", "gpio140", "gpio141",
-	"gpio142", "gpio143", "gpio144", "gpio145", "gpio146", "gpio160",
-	"gpio161", "gpio162", "gpio163", "gpio164", "gpio165", "gpio166",
-	"gpio167", "gpio168", "gpio169", "gpio170", "gpio171", "gpio172",
-	"gpio173", "gpio174", "gpio175", "gpio176", "gpio177", "gpio178"
+static const char * const uicc_groups[] = {
+	"gpio55", "gpio56"
 };
 
-static const char * const peripheral2_groups[] = {
-	"gpio16", "gpio17", "gpio49", "gpio50", "gpio51", "gpio52",
-	"gpio88", "gpio115", "gpio172", "gpio173", "gpio174", "gpio175",
-	"gpio176", "gpio177", "gpio178"
+static const char * const uart1dm_groups[] = {
+	"gpio136", "gpio137", "gpio134", "gpio135"
+};
+
+static const char * const uart2dm_groups[] = {
+	"gpio51", "gpio52", "gpio49", "gpio50", "gpio85", "gpio87", "gpio89",
+	"gpio88"
+};
+
+static const char * const uart1_groups[] = {
+	"gpio136", "gpio137", "gpio134", "gpio135"
+};
+
+static const char * const uart2_groups[] = {
+	"gpio51", "gpio52", "gpio49", "gpio50"
+};
+
+static const char * const uart3_groups[] = {
+	"gpio53", "gpio54", "gpio57", "gpio55"
+};
+
+static const char * const uim1_groups[] = {
+	"gpio52", "gpio49", "gpio50"
+};
+
+static const char * const uim2_groups[] = {
+	"gpio54", "gpio57", "gpio53"
+};
+
+static const char * const sdc1_groups[] = {
+	"gpio40", "gpio41", "gpio42", "gpio43", "gpio39", "gpio38"
+};
+
+static const char * const sdc2_groups[] = {
+	"gpio112", "gpio113", "gpio114", "gpio115", "gpio66", "gpio67",
+	"gpio68", "gpio69", "gpio65", "gpio64"
+};
+
+static const char * const sdc3_groups[] = {
+	"gpio116", "gpio117", "gpio118", "gpio119", "gpio111", "gpio110"
+};
+
+static const char * const sdc4_groups[] = {
+	"gpio60", "gpio61", "gpio62", "gpio63", "gpio59", "gpio58"
+};
+
+static const char * const tsif_groups[] = {
+	"gpio35", "gpio37", "gpio36", "gpio34"
+};
+
+static const char * const auxpcm_groups[] = {
+	"gpio149", "gpio138", "gpio141", "gpio140"
+};
+
+static const char * const i2s_groups[] = {
+	"gpio138", "gpio140", "gpio141", "gpio139"
+};
+
+static const char * const qupi2c_groups[] = {
+	"gpio0", "gpio1", "gpio16", "gpio17"
+};
+
+static const char * const msmi2c_groups[] = {
+	"gpio71", "gpio70"
+};
+
+static const char * const spi_groups[] = {
+	"gpio47", "gpio48", "gpio45", "gpio46", "gpio44", "gpio87", "gpio89"
+};
+
+static const char * const wc_groups[] = {
+	"gpio146", "gpio144", "gpio145", "gpio147"
+};
+
+static const char * const ebi2_groups[] = {
+	"gpio163", "gpio164", "gpio165", "gpio166", "gpio167", "gpio168",
+	"gpio169", "gpio170", "gpio171", "gpio172", "gpio173", "gpio174",
+	"gpio175", "gpio176", "gpio177", "gpio178", "gpio85", "gpio89",
+	"gpio94", "gpio88", "gpio87", "gpio86", "gpio115", "gpio116", "gpio180",
+	"gpio126", "gpio127", "gpio128", "gpio129", "gpio130", "gpio131",
+	"gpio132", "gpio133", "gpio94", "gpio88"
+};
+
+static const char * const etm_groups[] = {
+	"gpio19", "gpio20", "gpio22", "gpio23", "gpio24", "gpio25", "gpio30"
+	"gpio34", "gpio35", "gpio36", "gpio37", "gpio38", "gpio39", "gpio40",
+	"gpio41", "gpio42", "gpio27", "gpio28"
+};
+
+static const char * const reset_groups[] = {
+	"gpio160", "gpio131", "gpio132", "gpio161", "gpio130"
+};
+
+static const char * const clock_groups[] = {
+	"gpio16", "gpio98", "gpio17", "gpio23", "gpio30"
+};
+
+static const char * const jtag_groups[] = {
+	"gpio128", "gpio127", "gpio120", "gpio129", "gpio121", "gpio122"
+	"gpio118", "gpio117", "gpio116", "gpio119", "gpio110", "gpio111"
+};
+
+static const char * const mm_groups[] = {
+	"gpio11", "gpio10", "gpio9", "gpio8", "gpio7", "gpio6", "gpio5",
+	"gpio4", "gpio3", "gpio2", "gpio1", "gpio0", "gpio15", "gpio12"
+	"gpio14", "gpio13", "gpio16", "gpio17", "gpio99", "gpio146", "gpio19",
+	"gpio121", "gpio18", "gpio120", "gpioxxx", "gpioxxx", "gpio20",
+	"gpio122", "gpio21", "gpio123"
+};
+
+static const char * const mdp_groups[] = {
+	"gpio44", "gpio24", "gpio30"
+};
+
+static const char * const hdmi_groups[] = {
+	"gpio178", "gpio177", "gpio176", "gpio175", "gpio174", "gpio173",
+	"gpio172", "gpio171", "gpio170", "gpio169", "gpio168", "gpio167",
+	"gpio166", "gpio165", "gpio164", "gpio163", "gpio162", "gpio161",
+	"gpio160", "gpio132", "gpio131", "gpio130", "gpio129", "gpio128",
+	"gpio124", "gpio126", "gpio127", "gpio125"
+};
+
+static const char * const lcdc_groups[] = {
+	"gpio109", "gpio108", "gpio107", "gpio106", "gpio105", "gpio25",
+	"gpio24", "gpio23", "gpio99", "gpio98", "gpio97", "gpio96", "gpio95",
+	"gpio94", "gpio19", "gpio18", "gpio104", "gpio103", "gpio102",
+	"gpio101", "gpio100", "gpio22", "gpio21", "gpio20", "gpio90", "gpio92",
+	"gpio93", "gpio91"
+};
+
+static const char * const mi2s_groups[] = {
+	"gpio123", "gpio122", "gpio121", "gpio120", "gpio109", "gpio108",
+	"gpio104", "gpio103"
+};
+
+static const char * const gnss_groups[] = {
+	"gpio181", "gpio148", "gpio149", "gpio150"
+};
+
+static const char * const pa_groups[] = {
+	"gpio32", "gpio75", "gpio74"
+};
+
+static const char * const gsm_pa_groups[] = {
+	"gpio80", "gpio72", "gpio154", "gpio155", "gpio156", "gpio152",
+	"gpio153"
+};
+
+static const char * const ant_groups[] = {
+	"gpio76", "gpio77", "gpio78", "gpio72", "gpio73", "gpio74", "gpio75",
+};
+
+static const char * const ssbi_groups[] = {
+	"gpio143", "gpio152", "gpio133", "gpio153", "gpio158", "gpio155",
+	"gpio159", "gpio156", "gpio31", "gpio154", "gpio89", "gpio31"
+};
+
+static const char * const pm_groups[] = {
+	"gpio29", "gpio28", "gpio27", "gpio179", "gpio57"
+};
+
+static const char * const grfc_groups[] = {
+	"gpio157", "gpio95", "gpio96", "gpio97", "gpio72", "gpio73", "gpio74",
+	"gpio75", "gpio76", "gpio77", "gpio78", "gpio79", "gpio80", "gpio81"
 };
 
 static const struct msm_function_v1 msm7x30_functions[] = {
 	FUNCTION(gpio),
-	FUNCTION(peripheral),
-	FUNCTION(peripheral2)
+	FUNCTION(uicc),
+	FUNCTION(uart1dm),
+	FUNCTION(uart2dm),
+	FUNCTION(uart1),
+	FUNCTION(uart2),
+	FUNCTION(uart3),
+	FUNCTION(uim1),
+	FUNCTION(uim2),
+	FUNCTION(sdc1),
+	FUNCTION(sdc2),
+	FUNCTION(sdc3),
+	FUNCTION(sdc4),
+	FUNCTION(tsif),
+	FUNCTION(auxpcm),
+	FUNCTION(i2s),
+	FUNCTION(qupi2c),
+	FUNCTION(msmi2c),
+	FUNCTION(spi),
+	FUNCTION(wc),
+	FUNCTION(ebi2),
+	FUNCTION(etm),
+	FUNCTION(reset),
+	FUNCTION(clock),
+	FUNCTION(jtag),
+	FUNCTION(mm),
+	FUNCTION(mdp),
+	FUNCTION(hdmi),
+	FUNCTION(lcdc),
+	FUNCTION(mi2s),
+	FUNCTION(gnss),
+	FUNCTION(pa),
+	FUNCTION(gsm_pa),
+	FUNCTION(ant),
+	FUNCTION(ssbi),
+	FUNCTION(pm),
+	FUNCTION(grfc),
 };
 
 static const struct msm_pingroup_v1 msm7x30_groups[] = {
-	PINGROUP(0, 0, _, _, _, _, _, _, _),
-	PINGROUP(1, 0, _, _, _, _, _, _, _),
-	PINGROUP(2, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(3, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(4, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(5, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(6, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(7, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(8, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(9, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(10, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(11, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(12, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(13, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(14, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(15, 0, peripheral, _, _, _, _, _, _),
-	PINGROUP(16, 1, peripheral2, _, _, _, _, _, _),
-	PINGROUP(17, 1, peripheral2, _, _, _, _, _, _),
-	PINGROUP(18, 1, _, _, _, _, _, _, _),
-	PINGROUP(19, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(20, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(21, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(22, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(23, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(24, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(25, 1, peripheral, _, _, _, _, _, _),
+	PINGROUP(0, 0, mm, qupi2c, _, _, _, _, _),
+	PINGROUP(1, 0, mm, qupi2c, _, _, _, _, _),
+	PINGROUP(2, 0, mm, _, _, _, _, _, _),
+	PINGROUP(3, 0, mm, _, _, _, _, _, _),
+	PINGROUP(4, 0, mm, _, _, _, _, _, _),
+	PINGROUP(5, 0, mm, _, _, _, _, _, _),
+	PINGROUP(6, 0, mm, _, _, _, _, _, _),
+	PINGROUP(7, 0, mm, _, _, _, _, _, _),
+	PINGROUP(8, 0, mm, _, _, _, _, _, _),
+	PINGROUP(9, 0, mm, _, _, _, _, _, _),
+	PINGROUP(10, 0, mm, _, _, _, _, _, _),
+	PINGROUP(11, 0, mm, _, _, _, _, _, _),
+	PINGROUP(12, 0, mm, _, _, _, _, _, _),
+	PINGROUP(13, 0, mm, _, _, _, _, _, _),
+	PINGROUP(14, 0, mm, _, _, _, _, _, _),
+	PINGROUP(15, 0, mm, _, _, _, _, _, _),
+	PINGROUP(16, 1, mm, qupi2c, _, _, _, _, _),//BROKEN
+	PINGROUP(17, 1, mm, qupi2c, _, _, _, _, _),//BROKEN
+	PINGROUP(18, 1, lcdc, _, _, _, _, _, _),
+	PINGROUP(19, 1, lcdc, _, _, _, _, _, _),
+	PINGROUP(20, 1, lcdc, _, _, _, _, _, _),
+	PINGROUP(21, 1, lcdc, _, _, _, _, _, _),
+	PINGROUP(22, 1, lcdc, _, _, _, _, _, _),
+	PINGROUP(23, 1, lcdc, _, _, _, _, _, _),
+	PINGROUP(24, 1, lcdc, _, _, _, _, _, _),
+	PINGROUP(25, 1, lcdc, _, _, _, _, _, _),
 	PINGROUP(26, 1, _, _, _, _, _, _, _),
-	PINGROUP(27, 1, peripheral, _, _, _, _, _, _),
+	PINGROUP(27, 1, pm, _, _, _, _, _, _),
 	PINGROUP(28, 1, _, _, _, _, _, _, _),
 	PINGROUP(29, 1, _, _, _, _, _, _, _),
-	PINGROUP(30, 1, peripheral, _, _, _, _, _, _),
+	PINGROUP(30, 1, mdp, _, _, _, _, _, _),
 	PINGROUP(31, 1, _, _, _, _, _, _, _),
 	PINGROUP(32, 1, _, _, _, _, _, _, _),
 	PINGROUP(33, 1, _, _, _, _, _, _, _),
-	PINGROUP(34, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(35, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(36, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(37, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(38, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(39, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(40, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(41, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(42, 1, peripheral, _, _, _, _, _, _),
-	PINGROUP(43, 1, peripheral, _, _, _, _, _, _),
+	PINGROUP(34, 1, tsif, _, _, _, _, _, _),
+	PINGROUP(35, 1, tsif, _, _, _, _, _, _),
+	PINGROUP(36, 1, tsif, _, _, _, _, _, _),
+	PINGROUP(37, 1, tsif, _, _, _, _, _, _),
+	PINGROUP(38, 1, sdc1, _, _, _, _, _, _),
+	PINGROUP(39, 1, sdc1, _, _, _, _, _, _),
+	PINGROUP(40, 1, sdc1, _, _, _, _, _, _),
+	PINGROUP(41, 1, sdc1, _, _, _, _, _, _),
+	PINGROUP(42, 1, sdc1, _, _, _, _, _, _),
+	PINGROUP(43, 1, sdc1, _, _, _, _, _, _),
 	PINGROUP(44, 2, _, _, _, _, _, _, _),
-	PINGROUP(45, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(46, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(47, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(48, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(49, 2, peripheral2, _, _, _, _, _, _),
-	PINGROUP(50, 2, peripheral2, _, _, _, _, _, _),
-	PINGROUP(51, 2, peripheral2, _, _, _, _, _, _),
-	PINGROUP(52, 2, peripheral2, _, _, _, _, _, _),
+	PINGROUP(45, 2, spi, _, _, _, _, _, _),
+	PINGROUP(46, 2, spi, _, _, _, _, _, _),
+	PINGROUP(47, 2, spi, _, _, _, _, _, _),
+	PINGROUP(48, 2, spi, _, _, _, _, _, _),
+	PINGROUP(49, 2, _, uart2, _, _, _, _, _),
+	PINGROUP(50, 2, _, uart2, _, _, _, _, _),
+	PINGROUP(51, 2, _, uart2, _, _, _, _, _),
+	PINGROUP(52, 2, _, uart2, _, _, _, _, _),
 	PINGROUP(53, 2, _, _, _, _, _, _, _),
 	PINGROUP(54, 2, _, _, _, _, _, _, _),
 	PINGROUP(55, 2, _, _, _, _, _, _, _),
 	PINGROUP(56, 2, _, _, _, _, _, _, _),
 	PINGROUP(57, 2, _, _, _, _, _, _, _),
-	PINGROUP(58, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(59, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(60, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(61, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(62, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(63, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(64, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(65, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(66, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(67, 2, peripheral, _, _, _, _, _, _),
-	PINGROUP(68, 3, peripheral, _, _, _, _, _, _),
-	PINGROUP(69, 3, peripheral, _, _, _, _, _, _),
-	PINGROUP(70, 3, peripheral, _, _, _, _, _, _),
-	PINGROUP(71, 3, peripheral, _, _, _, _, _, _),
+	PINGROUP(58, 2, sdc4, _, _, _, _, _, _),
+	PINGROUP(59, 2, sdc4, _, _, _, _, _, _),
+	PINGROUP(60, 2, sdc4, _, _, _, _, _, _),
+	PINGROUP(61, 2, sdc4, _, _, _, _, _, _),
+	PINGROUP(62, 2, sdc4, _, _, _, _, _, _),
+	PINGROUP(63, 2, sdc4, _, _, _, _, _, _),
+	PINGROUP(64, 2, sdc2, _, _, _, _, _, _),
+	PINGROUP(65, 2, sdc2, _, _, _, _, _, _),
+	PINGROUP(66, 2, sdc2, _, _, _, _, _, _),
+	PINGROUP(67, 2, sdc2, _, _, _, _, _, _),
+	PINGROUP(68, 3, sdc2, _, _, _, _, _, _),
+	PINGROUP(69, 3, sdc2, _, _, _, _, _, _),
+	PINGROUP(70, 3, msmi2c, _, _, _, _, _, _),
+	PINGROUP(71, 3, msmi2c, _, _, _, _, _, _),
 	PINGROUP(72, 3, _, _, _, _, _, _, _),
 	PINGROUP(73, 3, _, _, _, _, _, _, _),
 	PINGROUP(74, 3, _, _, _, _, _, _, _),
@@ -683,67 +892,67 @@ static const struct msm_pingroup_v1 msm7x30_groups[] = {
 	PINGROUP(83, 3, _, _, _, _, _, _, _),
 	PINGROUP(84, 3, _, _, _, _, _, _, _),
 	PINGROUP(85, 3, _, _, _, _, _, _, _),
-	PINGROUP(86, 3, peripheral, _, _, _, _, _, _),
+	PINGROUP(86, 3, ebi2, _, _, _, _, _, _),
 	PINGROUP(87, 3, _, _, _, _, _, _, _),
-	PINGROUP(88, 3, peripheral2, _, _, _, _, _, _),
+	PINGROUP(88, 3, _, ebi2, _, _, _, _, _),
 	PINGROUP(89, 3, _, _, _, _, _, _, _),
-	PINGROUP(90, 3, peripheral, _, _, _, _, _, _),
-	PINGROUP(91, 3, peripheral, _, _, _, _, _, _),
-	PINGROUP(92, 3, peripheral, _, _, _, _, _, _),
-	PINGROUP(93, 3, peripheral, _, _, _, _, _, _),
-	PINGROUP(94, 3, peripheral, _, _, _, _, _, _),
-	PINGROUP(95, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(96, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(97, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(98, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(99, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(100, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(101, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(102, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(103, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(104, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(105, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(106, 4, peripheral, _, _, _, _, _, _),
-	PINGROUP(107, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(108, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(109, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(110, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(111, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(112, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(113, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(114, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(115, 5, peripheral, peripheral2, _, _, _, _, _),
-	PINGROUP(116, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(117, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(118, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(119, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(120, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(121, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(122, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(123, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(124, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(125, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(126, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(127, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(128, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(129, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(130, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(131, 5, peripheral, _, _, _, _, _, _),
-	PINGROUP(132, 5, peripheral, _, _, _, _, _, _),
+	PINGROUP(90, 3, lcdc, _, _, _, _, _, _),
+	PINGROUP(91, 3, lcdc, _, _, _, _, _, _),
+	PINGROUP(92, 3, lcdc, _, _, _, _, _, _),
+	PINGROUP(93, 3, lcdc, _, _, _, _, _, _),
+	PINGROUP(94, 3, lcdc, _, _, _, _, _, _),
+	PINGROUP(95, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(96, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(97, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(98, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(99, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(100, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(101, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(102, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(103, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(104, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(105, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(106, 4, lcdc, _, _, _, _, _, _),
+	PINGROUP(107, 5, lcdc, _, _, _, _, _, _),
+	PINGROUP(108, 5, lcdc, _, _, _, _, _, _),
+	PINGROUP(109, 5, lcdc, _, _, _, _, _, _),
+	PINGROUP(110, 5, sdc3, _, _, _, _, _, _),
+	PINGROUP(111, 5, sdc3, _, _, _, _, _, _),
+	PINGROUP(112, 5, sdc2, _, _, _, _, _, _),
+	PINGROUP(113, 5, sdc2, _, _, _, _, _, _),
+	PINGROUP(114, 5, sdc2, _, _, _, _, _, _),
+	PINGROUP(115, 5, sdc2, ebi2, _, _, _, _, _),
+	PINGROUP(116, 5, sdc3, _, _, _, _, _, _),
+	PINGROUP(117, 5, sdc3, _, _, _, _, _, _),
+	PINGROUP(118, 5, sdc3, _, _, _, _, _, _),
+	PINGROUP(119, 5, sdc3, _, _, _, _, _, _),
+	PINGROUP(120, 5, mi2s, _, _, _, _, _, _),
+	PINGROUP(121, 5, mi2s, _, _, _, _, _, _),
+	PINGROUP(122, 5, mi2s, _, _, _, _, _, _),
+	PINGROUP(123, 5, mi2s, _, _, _, _, _, _),
+	PINGROUP(124, 5, hdmi, _, _, _, _, _, _),
+	PINGROUP(125, 5, hdmi, _, _, _, _, _, _),
+	PINGROUP(126, 5, hdmi, _, _, _, _, _, _),
+	PINGROUP(127, 5, hdmi, _, _, _, _, _, _),
+	PINGROUP(128, 5, hdmi, _, _, _, _, _, _),
+	PINGROUP(129, 5, hdmi, _, _, _, _, _, _),
+	PINGROUP(130, 5, hdmi, _, _, _, _, _, _),
+	PINGROUP(131, 5, hdmi, _, _, _, _, _, _),
+	PINGROUP(132, 5, hdmi, _, _, _, _, _, _),
 	PINGROUP(133, 5, _, _, _, _, _, _, _),
-	PINGROUP(134, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(135, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(136, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(137, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(138, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(139, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(140, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(141, 6, peripheral, _, _, _, _, _, _),
+	PINGROUP(134, 6, uart1dm, _, _, _, _, _, _),
+	PINGROUP(135, 6, uart1dm, _, _, _, _, _, _),
+	PINGROUP(136, 6, uart1dm, _, _, _, _, _, _),
+	PINGROUP(137, 6, uart1dm, _, _, _, _, _, _),
+	PINGROUP(138, 6, auxpcm, _, _, _, _, _, _),
+	PINGROUP(139, 6, auxpcm, _, _, _, _, _, _),
+	PINGROUP(140, 6, auxpcm, _, _, _, _, _, _),
+	PINGROUP(141, 6, auxpcm, _, _, _, _, _, _),
 	PINGROUP(142, 6, _, _, _, _, _, _, _),
 	PINGROUP(143, 6, _, _, _, _, _, _, _),
-	PINGROUP(144, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(145, 6, peripheral, _, _, _, _, _, _),
-	PINGROUP(146, 6, peripheral, _, _, _, _, _, _),
+	PINGROUP(144, 6, mi2s, _, _, _, _, _, _),
+	PINGROUP(145, 6, mi2s, _, _, _, _, _, _),
+	PINGROUP(146, 6, mi2s, _, _, _, _, _, _),
 	PINGROUP(147, 6, _, _, _, _, _, _, _),
 	PINGROUP(148, 6, _, _, _, _, _, _, _),
 	PINGROUP(149, 6, _, _, _, _, _, _, _),
@@ -757,25 +966,25 @@ static const struct msm_pingroup_v1 msm7x30_groups[] = {
 	PINGROUP(157, 7, _, _, _, _, _, _, _),
 	PINGROUP(158, 7, _, _, _, _, _, _, _),
 	PINGROUP(159, 7, _, _, _, _, _, _, _),
-	PINGROUP(160, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(161, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(162, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(163, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(164, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(165, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(166, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(167, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(168, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(169, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(170, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(171, 7, peripheral, _, _, _, _, _, _),
-	PINGROUP(172, 7, peripheral, peripheral2, _, _, _, _, _),
-	PINGROUP(173, 7, peripheral, peripheral2, _, _, _, _, _),
-	PINGROUP(174, 7, peripheral, peripheral2, _, _, _, _, _),
-	PINGROUP(175, 7, peripheral, peripheral2, _, _, _, _, _),
-	PINGROUP(176, 7, peripheral, peripheral2, _, _, _, _, _),
-	PINGROUP(177, 7, peripheral, peripheral2, _, _, _, _, _),
-	PINGROUP(178, 7, peripheral, peripheral2, _, _, _, _, _),
+	PINGROUP(160, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(161, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(162, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(163, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(164, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(165, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(166, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(167, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(168, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(169, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(170, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(171, 7, hdmi, _, _, _, _, _, _),
+	PINGROUP(172, 7, hdmi, ebi2, _, _, _, _, _),
+	PINGROUP(173, 7, hdmi, ebi2, _, _, _, _, _),
+	PINGROUP(174, 7, hdmi, ebi2, _, _, _, _, _),
+	PINGROUP(175, 7, hdmi, ebi2, _, _, _, _, _),
+	PINGROUP(176, 7, hdmi, ebi2, _, _, _, _, _),
+	PINGROUP(177, 7, hdmi, ebi2, _, _, _, _, _),
+	PINGROUP(178, 7, hdmi, ebi2, _, _, _, _, _),
 	PINGROUP(179, 7, _, _, _, _, _, _, _),
 	PINGROUP(180, 7, _, _, _, _, _, _, _),
 	PINGROUP(181, 7, _, _, _, _, _, _, _),

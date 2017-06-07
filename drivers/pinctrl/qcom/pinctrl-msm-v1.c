@@ -751,7 +751,7 @@ static int msm_pinmux_set_mux(struct pinctrl_dev *pctldev,
 		return -EINVAL;
 
 	pin = g->index;
-	func = function;
+	func = i;
 	dir = GPIO_DIR(pctrl->tlmm[g->index]);
 	pull = GPIO_PULL(pctrl->tlmm[g->index]);
 	drvstr = GPIO_DRVSTR(pctrl->tlmm[g->index]);

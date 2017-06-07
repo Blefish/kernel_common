@@ -378,7 +378,7 @@
 			clock-names = "core_clk";
 
 			pinctrl-names = "default", "io";
-			pinctrl-0 = <&msm_i2c_gpios>;
+			pinctrl-0 = <&msm_i2c_pins>;
 			pinctrl-1 = <&msm_i2c_io_gpios>;
 
 			clock-frequency = <100000>;
@@ -432,7 +432,7 @@
 				clock-names = "core", "iface";
 				clock-frequency = <384000>;
 
-				pinctrl-0 = <&qup_i2c_gpios>;
+				pinctrl-0 = <&qup_i2c_pins>;
 				pinctrl-names = "default";
 
 				#address-cells = <1>;
@@ -446,7 +446,7 @@
 			qcom,controller-type = "ssbi2";
 
 			pinctrl-names = "default";
-			pinctrl-0 = <&pmic_irq_bus>;
+			pinctrl-0 = <&pmic_pins>;
 
 			pmicintc: pmic@0 {
 				compatible = "qcom,pm8058";
@@ -549,7 +549,7 @@
 				vqmmc-supply	= <&smps3>;
 
 				pinctrl-names	= "default";
-				pinctrl-0	= <&sdc2_gpios>;
+				pinctrl-0	= <&sdc2_pins>;
 
 				dmas = <&adm_dma 7>;
 				dma-names = "rx";
@@ -585,8 +585,8 @@
 				vqmmc-supply	= <&smps3>;
 
 				pinctrl-names	= "default", "sleep";
-				pinctrl-0	= <&sdc3_active_gpios>;
-				pinctrl-1	= <&sdc3_sleep_gpios>;
+				pinctrl-0	= <&sdc3_active_pins>;
+				pinctrl-1	= <&sdc3_sleep_pins>;
 
 				/* SDC3 uses same DMA channel as SDC4.
 				 * Current DMA does not allow multiple
@@ -624,8 +624,8 @@
 				cd-gpios = <&pm8058_gpio 36 0>;
 
 				pinctrl-names	= "default";
-				pinctrl-0	= <&sdc4_gpios>,
-						  <&pm8058_sdc4_gpios>;
+				pinctrl-0	= <&sdc4_pins>,
+						  <&pm8058_sdc4_pins>;
 
 				dmas = <&adm_dma 8>;
 				dma-names = "rx";
@@ -695,7 +695,7 @@
 			reg = <0xA3F00000 0xF0000>;
 			interrupts = <80 0>;
 			vdd-supply = <&fs_mdp>;
-			pinctrl-0 = <&mdp_gpios>;
+			pinctrl-0 = <&mdp_pins>;
 			pinctrl-names = "default";
 
 			#address-cells = <1>;
@@ -811,26 +811,26 @@
 };
 
 &tlmm {
-	pmic_irq_bus:pmic_irq_bus {
-		pm_irq_apc {
-			pins = "gpio27";
-			function = "peripheral";
-			bias-pull-none;
+	mdp_pins: mdp_pins {
+		mdp_vsync_1 {
+			pins = "gpio30";
+			function = "mdp";
+			bias-pull-down;
 			input-enable;
 		};
 	};
 
-	msm_i2c_gpios:msm_i2c_gpios {
+	msm_i2c_pins: msm_i2c_pins {
 		i2c_sclsda {
 			pins = "gpio70", "gpio71";
-			function = "peripheral";
+			function = "msmi2c";
 			bias-pull-none;
 			drive-strength = <16>;
 			input-enable;
 		};
 	};
 
-	msm_i2c_io_gpios:msm_i2c_io_gpios {
+	msm_i2c_io_gpios: msm_i2c_io_gpios {
 		i2c_sclsda {
 			pins = "gpio70", "gpio71";
 			function = "gpio";
@@ -839,89 +839,114 @@
 		};
 	};
 
-	qup_i2c_gpios: qup_i2c_gpios {
+	pmic_pins: pmic_pins {
+		pm_irq_apc {
+			pins = "gpio27";
+			function = "pm";
+			bias-pull-none;
+			input-enable;
+		};
+	};
+
+	qup_i2c_pins: qup_i2c_pins {
 		qup_sclsda {
 			pins = "gpio16", "gpio17";
-			function = "peripheral2";
+			function = "qupi2c";
 			bias-pull-none;
 			drive-strength = <16>;
 			input-enable;
 		};
 	};
 
-	sdc2_gpios:sdc2_gpios {
+	sdc2_pins: sdc2_pins {
+		mux {
+			pins = "gpio64", "gpio65", "gpio66", "gpio67",
+			       "gpio68", "gpio69", "gpio112", "gpio113",
+			       "gpio114", "gpio115";
+			function = "sdc2";
+		};
+
 		sdc2_clk {
 			pins = "gpio64";
-			function = "peripheral";
 			bias-pull-none;
 			drive-strength = <16>;
 		};
+
 		sdc2_clkdat {
-			pins = "gpio65", "gpio66", "gpio67", "gpio68", "gpio69",
-			       "gpio112", "gpio113", "gpio114", "gpio115";
-			function = "peripheral";
+			pins = "gpio65", "gpio66", "gpio67", "gpio68",
+			       "gpio69", "gpio112", "gpio113",
+			       "gpio114", "gpio115";
 			bias-pull-up;
 			drive-strength = <8>;
 		};
 	};
 
-	sdc3_active_gpios:sdc3_active_gpios {
+	sdc3_active_pins: sdc3_active_pins {
+		mux {
+			pins = "gpio110", "gpio111", "gpio116",
+			       "gpio117", "gpio118", "gpio119";
+			function = "sdc3";
+		};
+
 		sdc3_clk {
 			pins = "gpio110";
-			function = "peripheral";
 			bias-pull-none;
 			drive-strength = <16>;
 		};
+
 		sdc3_clkdat {
-			pins = "gpio111", "gpio116", "gpio117", "gpio118", "gpio119";
-			function = "peripheral";
+			pins = "gpio111", "gpio116", "gpio117",
+			       "gpio118", "gpio119";
 			bias-pull-up;
 			drive-strength = <8>;
 		};
 	};
 
-	sdc3_sleep_gpios:sdc3_sleep_gpios {
+	sdc3_sleep_pins: sdc3_sleep_pins {
+		mux {
+			pins = "gpio110", "gpio111", "gpio116",
+			       "gpio117", "gpio118", "gpio119";
+			function = "gpio";
+		};
+
 		sdc3_clk {
 			pins = "gpio110";
-			function = "peripheral";
 			bias-pull-none;
 			drive-strength = <2>;
 		};
+
 		sdc3_clkdat {
-			pins = "gpio111", "gpio116", "gpio117", "gpio118", "gpio119";
-			function = "peripheral";
+			pins = "gpio111", "gpio116", "gpio117",
+			       "gpio118", "gpio119";
 			bias-pull-none;
 			drive-strength = <2>;
 		};
 	};
 
-	sdc4_gpios:sdc4_gpios {
+	sdc4_pins: sdc4_pins {
+		mux {
+			pins = "gpio58", "gpio59", "gpio60", "gpio61",
+			       "gpio62", "gpio63";
+			function = "sdc4";
+		};
+
 		sdc4_clk {
 			pins = "gpio58";
-			function = "peripheral";
 			bias-pull-none;
 			drive-strength = <16>;
 		};
+
 		sdc4_clkdat {
-			pins = "gpio59", "gpio60", "gpio61", "gpio62", "gpio63";
-			function = "peripheral";
+			pins = "gpio59", "gpio60", "gpio61", "gpio62",
+			       "gpio63";
 			bias-pull-up;
 			drive-strength = <8>;
-		};
-	};
-
-	mdp_gpios:mdp_gpios {
-		display_pin {
-			pins = "gpio30";
-			function = "peripheral";
-			bias-pull-down;
-			input-enable;
 		};
 	};
 };
 
 &pm8058_gpio {
-	pm8058_sdc4_gpios:pm8058_sdc4_gpios {
+	pm8058_sdc4_pins: pm8058_sdc4_pins {
 		sd_det {
 			pins = "gpio36";
 			function = "normal";

@@ -25,7 +25,7 @@
 		gpio-reset = <&tlmm 85 0>;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&ts_irq>;
+		pinctrl-0 = <&ts_pins>;
 	};
 };
 
@@ -57,7 +57,7 @@
 };
 
 &pm8058_gpio {
-	pm8058_keypad_gpios:pm8058_keypad_gpios {
+	pm8058_keypad_pins: pm8058_keypad_pins {
 		kypd_sns {
 			pins = "gpio1", "gpio2", "gpio3", "gpio4", "gpio5";
 			function = "normal";
@@ -79,7 +79,7 @@
 		};
 	};
 
-	pm8058_sdc4_gpios:pm8058_sdc4_gpios {
+	pm8058_sdc4_pins: pm8058_sdc4_pins {
 		sd_det {
 			pins = "gpio21";
 		};
@@ -97,7 +97,7 @@
 		wakeup-source;
 
 		pinctrl-names = "default";
-		pinctrl-0 = <&pm8058_keypad_gpios>;
+		pinctrl-0 = <&pm8058_keypad_pins>;
 	};
 };
 
@@ -119,7 +119,7 @@
 };
 
 &tlmm {
-	ts_irq:ts_irq {
+	ts_pins: ts_pins {
 		irq {
 			pins = "gpio148";
 			function = "gpio";

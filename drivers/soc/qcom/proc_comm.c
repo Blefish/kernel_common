@@ -40,7 +40,7 @@ static struct proccomm_data *pcom_data;
 
 static inline void notify_other_proc_comm(struct proccomm_data *data)
 {
-	__raw_writel(BIT(data->ipc_bit), data->apcs_base + data->ipc_offset);
+	writel(BIT(data->ipc_bit), data->apcs_base + data->ipc_offset);
 }
 
 #define APP_COMMAND	0x00
@@ -101,8 +101,6 @@ again:
 
 	spin_unlock_irqrestore(&data->lock, flags);
 
-	/* Make sure the writes complete before notifying the other side */
-	wmb();
 	notify_other_proc_comm(data);
 
 	return;
@@ -119,12 +117,14 @@ int msm_proc_comm(unsigned cmd, unsigned *data1, unsigned *data2)
 	if (!data)
 		return -EPROBE_DEFER;
 
-	if (data->pcom_disabled)
-		return -EIO;
-
 	base = data->smem_base;
 
 	spin_lock_irqsave(&data->lock, flags);
+
+	if (data->pcom_disabled) {
+		ret = -EIO;
+		goto end;
+	}
 
 again:
 	if (proc_comm_wait_for(base + MDM_STATUS, PCOM_READY))
@@ -134,8 +134,6 @@ again:
 	writel_relaxed(data1 ? *data1 : 0, base + APP_DATA1);
 	writel_relaxed(data2 ? *data2 : 0, base + APP_DATA2);
 
-	/* Make sure the writes complete before notifying the other side */
-	wmb();
 	notify_other_proc_comm(data);
 
 	if (proc_comm_wait_for(base + APP_COMMAND, PCOM_CMD_DONE))
@@ -162,8 +160,7 @@ again:
 		break;
 	}
 
-	/* Make sure the writes complete before returning */
-	wmb();
+end:
 	spin_unlock_irqrestore(&data->lock, flags);
 	return ret;
 }
